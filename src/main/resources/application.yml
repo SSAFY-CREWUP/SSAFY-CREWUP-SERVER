@@ -21,13 +21,11 @@ spring:
         access-key: ${AWS_ACCESS_KEY}
         secret-key: ${AWS_SECRET_KEY}
 
-  # 3. 파일 업로드 제한
   servlet:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
 
-# 4. MyBatis 공통 설정
 mybatis:
   mapper-locations: classpath:mapper/**/*.xml
   type-aliases-package: com.ssafy.crewup.domain
