@@ -1,6 +1,6 @@
-package com.ssafy.crewup.domain.board.service;
+package com.ssafy.crewup.domain.crew.service;
 
-import com.ssafy.crewup.domain.board.mapper.XXXMapper;
+import com.ssafy.crewup.domain.crew.mapper.CrewMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class XXXService {
+public class CrewService {
 
-    private final XXXMapper mapper;
+    private final CrewMapper crewMapper;
 }
