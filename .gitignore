@@ -83,3 +83,6 @@ Temporary Items
 application.properties
 out/
 
+# Secrets
+src/main/resources/application.yml
+src/main/resources/application-*.yml
