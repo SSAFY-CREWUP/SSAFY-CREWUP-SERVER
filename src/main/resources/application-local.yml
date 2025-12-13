@@ -1,0 +1,9 @@
+logging:
+  level:
+    root: INFO
+    com.ssafy.crewup: DEBUG
+    org.apache.ibatis: DEBUG
+
+app:
+  server:
+    url: http://localhost:8081

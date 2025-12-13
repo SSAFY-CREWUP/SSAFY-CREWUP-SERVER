@@ -82,7 +82,5 @@ Temporary Items
 *.ipr
 application.properties
 out/
+.run/
 
-# Secrets
-src/main/resources/application.yml
-src/main/resources/application-*.yml
