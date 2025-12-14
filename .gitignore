@@ -82,4 +82,5 @@ Temporary Items
 *.ipr
 application.properties
 out/
+.run/
 
