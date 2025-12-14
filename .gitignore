@@ -80,7 +80,9 @@ Temporary Items
 *.iml
 *.iws
 *.ipr
-application.properties
+application.yml
+application-local.yml
+application-prod.yml
 out/
 .run/
 
