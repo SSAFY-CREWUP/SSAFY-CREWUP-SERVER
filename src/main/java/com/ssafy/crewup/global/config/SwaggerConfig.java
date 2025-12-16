@@ -11,7 +11,7 @@ import java.util.List;
 
 @Configuration
 public class SwaggerConfig {
-    @Value("${app.server.url}")
+    @Value("${app.server.url:http://localhost:8080}")
     private String serverUrl;
 
     @Bean
