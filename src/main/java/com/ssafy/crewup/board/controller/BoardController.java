@@ -1,14 +1,14 @@
 package com.ssafy.crewup.board.controller;
 
-import com.ssafy.crewup.board.service.BoardService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 
 @RestController
-@RequestMapping("/api/v1/boards")
-@RequiredArgsConstructor
+@RequestMapping("/api/v1/board")
 public class BoardController {
-
-    private final BoardService boardService;
+    @GetMapping("/health")
+    public String health() {
+        return "ok";
+    }
 }
