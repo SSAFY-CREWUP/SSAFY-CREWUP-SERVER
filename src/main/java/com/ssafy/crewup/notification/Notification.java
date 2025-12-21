@@ -1,6 +1,6 @@
 package com.ssafy.crewup.notification;
 
-import com.ssafy.crewup.global.common.BaseTime;
+import com.ssafy.crewup.global.common.code.BaseTime;
 import com.ssafy.crewup.enums.NotificationType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

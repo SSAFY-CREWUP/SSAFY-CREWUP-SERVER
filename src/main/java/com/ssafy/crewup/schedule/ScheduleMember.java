@@ -1,6 +1,6 @@
 package com.ssafy.crewup.schedule;
 
-import com.ssafy.crewup.global.common.BaseTime;
+import com.ssafy.crewup.global.common.code.BaseTime;
 import com.ssafy.crewup.enums.ScheduleMemberStatus;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
