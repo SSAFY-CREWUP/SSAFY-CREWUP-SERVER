@@ -1,6 +1,6 @@
 package com.ssafy.crewup.crew;
 
-import com.ssafy.crewup.global.common.BaseTime;
+import com.ssafy.crewup.global.common.code.BaseTime;
 import com.ssafy.crewup.enums.CrewMemberRole;
 import com.ssafy.crewup.enums.CrewMemberStatus;
 import java.time.LocalDateTime;

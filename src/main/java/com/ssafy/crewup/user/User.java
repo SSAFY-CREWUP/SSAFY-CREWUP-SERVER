@@ -1,6 +1,6 @@
 package com.ssafy.crewup.user;
 
-import com.ssafy.crewup.global.common.BaseTime;
+import com.ssafy.crewup.global.common.code.BaseTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

@@ -1,4 +1,4 @@
-package com.ssafy.crewup.global.common;
+package com.ssafy.crewup.global.common.code;
 
 import java.time.LocalDateTime;
 
