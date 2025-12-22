@@ -6,6 +6,7 @@ import com.ssafy.crewup.global.common.dto.ApiResponseBody;
 import com.ssafy.crewup.global.common.exception.CustomException;
 import com.ssafy.crewup.global.service.S3Service;
 import com.ssafy.crewup.user.dto.request.LoginRequest;
+import com.ssafy.crewup.user.dto.request.UserAdditionalInfoRequest;
 import com.ssafy.crewup.user.dto.request.UserCreateRequest;
 import com.ssafy.crewup.user.service.UserService;
 import jakarta.servlet.http.HttpSession;
@@ -83,5 +84,22 @@ public class UserController {
                 ApiResponseBody.onSuccess(SuccessCode.LOGOUT_SUCCESS)
         );
     }
-}
+    // 추가 정보 등록
+    @PutMapping("/add/info")
+    public ResponseEntity<ApiResponseBody<Void>> updateAdditionalInfo(
+            @Valid @RequestBody UserAdditionalInfoRequest request,
+            HttpSession session) {
 
+        Long userId = (Long) session.getAttribute("userId");
+
+        if (userId == null) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
+
+        userService.updateAdditionalInfo(userId, request);
+
+        return ResponseEntity.ok(
+                ApiResponseBody.onSuccess(SuccessCode.USER_ADDITIONAL_INFO_SUCCESS)
+        );
+    }
+}

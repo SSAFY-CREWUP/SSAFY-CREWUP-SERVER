@@ -14,15 +14,32 @@ import java.util.List;
 
 @Mapper
 public interface UserMapper {
-    @Select("SELECT user_id AS id, email, password, nickname, profile_image AS profileImage, total_distance AS totalDistance, created_at AS createdAt, updated_at AS updatedAt FROM users WHERE user_id = #{id}")
+
+    // 기본 정보만 조회 (회원가입용)
+    @Select("SELECT user_id AS id, email, password, nickname, profile_image AS profileImage, " +
+            "total_distance AS totalDistance, gender, birth_date AS birthDate, " +
+            "average_pace AS averagePace, activity_region AS activityRegion, " +
+            "created_at AS createdAt, updated_at AS updatedAt " +
+            "FROM users WHERE user_id = #{id}")
     User findById(@Param("id") Long id);
 
-    @Insert("INSERT INTO users(email, password, nickname, profile_image, total_distance) VALUES(#{email}, #{password}, #{nickname}, #{profileImage}, #{totalDistance})")
+    // 회원가입 (기본 정보만)
+    @Insert("INSERT INTO users(email, password, nickname, profile_image, total_distance) " +
+            "VALUES(#{email}, #{password}, #{nickname}, #{profileImage}, #{totalDistance})")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "user_id")
     int insert(User user);
 
-    @Update("UPDATE users SET email=#{email}, password=#{password}, nickname=#{nickname}, profile_image=#{profileImage}, total_distance=#{totalDistance} WHERE user_id=#{id}")
+    // 기본 정보 수정
+    @Update("UPDATE users SET email=#{email}, password=#{password}, nickname=#{nickname}, " +
+            "profile_image=#{profileImage}, total_distance=#{totalDistance} " +
+            "WHERE user_id=#{id}")
     int update(User user);
+
+    // 추가 정보 수정 (신규)
+    @Update("UPDATE users SET gender=#{gender}, birth_date=#{birthDate}, " +
+            "average_pace=#{averagePace}, activity_region=#{activityRegion} " +
+            "WHERE user_id=#{id}")
+    int updateAdditionalInfo(User user);
 
     @Delete("DELETE FROM users WHERE user_id = #{id}")
     int delete(@Param("id") Long id);
@@ -30,13 +47,19 @@ public interface UserMapper {
     @Select("SELECT COUNT(*) FROM users WHERE email = #{email}")
     int countByEmail(@Param("email") String email);
 
-    @Select("SELECT user_id AS id, email, password, nickname, profile_image AS profileImage, total_distance AS totalDistance, created_at AS createdAt, updated_at AS updatedAt FROM users WHERE email = #{email}")
+    @Select("SELECT user_id AS id, email, password, nickname, profile_image AS profileImage, " +
+            "total_distance AS totalDistance, gender, birth_date AS birthDate, " +
+            "average_pace AS averagePace, activity_region AS activityRegion, " +
+            "created_at AS createdAt, updated_at AS updatedAt " +
+            "FROM users WHERE email = #{email}")
     User findByEmail(@Param("email") String email);
 
-    // 여러 사용자를 한 번에 조회 (추가!)
+    // 여러 사용자를 한 번에 조회
     @Select("<script>" +
             "SELECT user_id AS id, email, nickname, profile_image AS profileImage, " +
-            "total_distance AS totalDistance, created_at AS createdAt, updated_at AS updatedAt " +
+            "total_distance AS totalDistance, gender, birth_date AS birthDate, " +
+            "average_pace AS averagePace, activity_region AS activityRegion, " +
+            "created_at AS createdAt, updated_at AS updatedAt " +
             "FROM users " +
             "WHERE user_id IN " +
             "<foreach item='id' collection='userIds' open='(' separator=',' close=')'>" +
@@ -45,4 +68,3 @@ public interface UserMapper {
             "</script>")
     List<User> findByIds(@Param("userIds") List<Long> userIds);
 }
-
