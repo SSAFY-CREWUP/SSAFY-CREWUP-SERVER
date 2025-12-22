@@ -1,6 +1,7 @@
 package com.ssafy.crewup.user.dto.response;
 
 import com.ssafy.crewup.enums.Gender;
+import com.ssafy.crewup.enums.Region;
 import com.ssafy.crewup.user.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,7 +21,7 @@ public class UserResponse {
     private Gender gender;
     private LocalDate birthDate;
     private String averagePace;
-    private String activityRegion;
+    private Region activityRegion;
 
     public static UserResponse from(User user) {
         return UserResponse.builder()
@@ -34,4 +35,3 @@ public class UserResponse {
                 .build();
     }
 }
-

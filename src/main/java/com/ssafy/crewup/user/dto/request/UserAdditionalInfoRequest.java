@@ -1,6 +1,7 @@
 package com.ssafy.crewup.user.dto.request;
 
 import com.ssafy.crewup.enums.Gender;
+import com.ssafy.crewup.enums.Region;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -21,6 +22,6 @@ public class UserAdditionalInfoRequest {
     @NotBlank
     private String averagePace;
 
-    @NotBlank
-    private String activityRegion;
+    @NotNull
+    private Region activityRegion;
 }

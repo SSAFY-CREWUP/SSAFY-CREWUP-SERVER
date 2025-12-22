@@ -1,6 +1,7 @@
 package com.ssafy.crewup.user;
 
 import com.ssafy.crewup.enums.Gender;
+import com.ssafy.crewup.enums.Region;
 import com.ssafy.crewup.global.common.code.BaseTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,6 +28,7 @@ public class User extends BaseTime {
     private Gender gender;
     private LocalDate birthDate;
     private String averagePace;
-    private String activityRegion;
+    private Region activityRegion;
 }
+
 
