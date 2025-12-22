@@ -16,6 +16,7 @@ public enum SuccessCode implements BaseCode {
     SCHEDULE_DETAIL_SUCCESS(HttpStatus.OK, "스케줄 상세 조회에 성공했습니다."),
     SCHEDULE_CREATE_SUCCESS(HttpStatus.CREATED, "스케줄 생성에 성공했습니다."),
     SCHEDULE_JOIN_SUCCESS(HttpStatus.OK, "스케줄 참가 신청이 완료되었습니다."),
+    SCHEDULE_DELETE_SUCCESS(HttpStatus.OK, "스케줄 삭제에 성공했습니다."),
 
     // 회원가입 관련
     SIGNUP_SUCCESS(HttpStatus.CREATED, "회원가입이 완료되었습니다."),

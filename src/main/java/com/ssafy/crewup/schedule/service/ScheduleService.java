@@ -19,4 +19,6 @@ public interface ScheduleService {
     //일정 참가하기
     void joinSchedule(Long scheduleId, Long userId);
 
+    //일정 삭제
+    void deleteSchedule(Long scheduleId, Long userId);
 }

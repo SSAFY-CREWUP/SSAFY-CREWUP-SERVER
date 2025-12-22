@@ -16,6 +16,7 @@ public enum ErrorCode implements BaseCode {
     CREW_NOT_FOUND(HttpStatus.NOT_FOUND, "크루를 찾을 수 없습니다."),
     ALREADY_JOINED(HttpStatus.CONFLICT, "이미 참가 신청한 스케줄입니다."),
     SCHEDULE_FULL(HttpStatus.BAD_REQUEST, "스케줄 인원이 가득 찼습니다."),
+    NOT_SCHEDULE_CREATOR(HttpStatus.FORBIDDEN, "스케줄 생성자만 삭제할 수 있습니다."),
 
     // 회원 관련
     EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다."),

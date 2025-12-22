@@ -24,7 +24,7 @@ public class ScheduleController {
     private final ScheduleService scheduleService;
 
     // 스케줄 목록 조회
-    @GetMapping("/list/{crewId}")
+    @GetMapping("/{crewId}/list")
     public ResponseEntity<ApiResponseBody<List<ScheduleGetResponse>>> getScheduleList(
             @PathVariable Long crewId) {
 
@@ -47,23 +47,21 @@ public class ScheduleController {
         );
     }
 
-@PostMapping("/{crewId}/create")
-public ResponseEntity<ApiResponseBody<Void>> createSchedule(
-        @PathVariable Long crewId,
-        @Valid @RequestBody ScheduleCreateRequest request,
-        HttpSession session) {
+    @PostMapping("/{crewId}/create")
+    public ResponseEntity<ApiResponseBody<Void>> createSchedule(
+            @PathVariable Long crewId,
+            @Valid @RequestBody ScheduleCreateRequest request,
+            HttpSession session) {
 
-    Long userId = (Long) session.getAttribute("userId"); // 세션에서 유저 ID 추출
+        Long userId = (Long) session.getAttribute("userId"); // 세션에서 유저 ID 추출
 
-    request.setCrewId(crewId);
-    scheduleService.createSchedule(request, userId); // userId 함께 전달
+        request.setCrewId(crewId);
+        scheduleService.createSchedule(request, userId); // userId 함께 전달
 
-    return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.SCHEDULE_CREATE_SUCCESS));
-}
+        return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.SCHEDULE_CREATE_SUCCESS));
+    }
 
     // 스케줄 참가
-    // ScheduleController.java
-
     @PostMapping("/{scheduleId}/join")
     public ResponseEntity<ApiResponseBody<Void>> joinSchedule(
             @PathVariable Long scheduleId,
@@ -79,6 +77,24 @@ public ResponseEntity<ApiResponseBody<Void>> createSchedule(
 
         return ResponseEntity.ok(
                 ApiResponseBody.onSuccess(SuccessCode.SCHEDULE_JOIN_SUCCESS)
+        );
+    }
+    // 스케줄 삭제
+    @DeleteMapping("/{scheduleId}/delete")
+    public ResponseEntity<ApiResponseBody<Void>> deleteSchedule(
+            @PathVariable Long scheduleId,
+            HttpSession session) {
+
+        Long userId = (Long) session.getAttribute("userId");
+
+        if (userId == null) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
+
+        scheduleService.deleteSchedule(scheduleId, userId);
+
+        return ResponseEntity.ok(
+                ApiResponseBody.onSuccess(SuccessCode.SCHEDULE_DELETE_SUCCESS)
         );
     }
 }

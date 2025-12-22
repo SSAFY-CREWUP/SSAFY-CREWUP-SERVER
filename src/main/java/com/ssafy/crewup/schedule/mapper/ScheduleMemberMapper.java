@@ -52,4 +52,7 @@ public interface ScheduleMemberMapper {
             "</foreach>" +
             "</script>")
     List<ScheduleMember> findByScheduleIds(@Param("scheduleIds") List<Long> scheduleIds);
+
+    @Delete("DELETE FROM schedule_member WHERE schedule_id = #{scheduleId}")
+    int deleteByScheduleId(@Param("scheduleId") Long scheduleId);
 }

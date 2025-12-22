@@ -188,4 +188,42 @@ public class ScheduleServiceImpl implements ScheduleService {
             throw e;
         }
     }
+    @Override
+    @Transactional
+    public void deleteSchedule(Long scheduleId, Long userId) {
+        log.info("=== 스케줄 삭제 시작 ===");
+        log.info("scheduleId: {}, userId: {}", scheduleId, userId);
+
+        // 1. 스케줄 존재 확인
+        Schedule schedule = scheduleMapper.findById(scheduleId);
+        if (schedule == null) {
+            log.warn("스케줄을 찾을 수 없음");
+            throw new CustomException(ErrorCode.SCHEDULE_NOT_FOUND);
+        }
+
+        // 2. 생성자 확인 - schedule_member에서 CONFIRMED 상태인 첫 번째 사용자가 생성자
+        List<ScheduleMember> members = scheduleMemberMapper.findByScheduleId(scheduleId);
+
+        // 생성자 찾기 (CONFIRMED 상태 중 가장 먼저 생성된 사람)
+        ScheduleMember creator = members.stream()
+                .filter(member -> member.getStatus() == ScheduleMemberStatus.CONFIRMED)
+                .min((m1, m2) -> m1.getId().compareTo(m2.getId()))
+                .orElse(null);
+
+        if (creator == null || !creator.getUserId().equals(userId)) {
+            log.warn("생성자가 아닌 사용자가 삭제 시도 - 요청 userId: {}, 생성자 userId: {}",
+                    userId, creator != null ? creator.getUserId() : "null");
+            throw new CustomException(ErrorCode.NOT_SCHEDULE_CREATOR);
+        }
+
+        // 3. 연관된 schedule_member 먼저 삭제 (FK 제약조건)
+        int deletedMembers = scheduleMemberMapper.deleteByScheduleId(scheduleId);
+        log.info("삭제된 참가자 수: {}", deletedMembers);
+
+        // 4. 스케줄 삭제
+        int deletedSchedule = scheduleMapper.delete(scheduleId);
+        log.info("스케줄 삭제 완료: {}", deletedSchedule);
+
+        log.info("=== 스케줄 삭제 완료 ===");
+    }
 }

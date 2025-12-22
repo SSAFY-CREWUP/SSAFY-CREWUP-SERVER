@@ -33,8 +33,8 @@ public interface ScheduleMapper {
     @Update("UPDATE schedule SET crew_id=#{crewId}, course_id=#{courseId}, title=#{title}, run_date=#{runDate}, location=#{location}, max_people=#{maxPeople} WHERE schedule_id=#{id}")
     int update(Schedule schedule);
 
-    @Delete("DELETE FROM schedule WHERE schedule_id = #{id}")
-    int delete(@Param("id") Long id);
+    @Delete("DELETE FROM schedule WHERE schedule_id = #{scheduleId}")
+    int delete(@Param("scheduleId") Long scheduleId);
 
 
 }
