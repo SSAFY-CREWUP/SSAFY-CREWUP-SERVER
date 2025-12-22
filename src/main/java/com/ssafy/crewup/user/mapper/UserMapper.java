@@ -31,3 +31,4 @@ public interface UserMapper {
     @Select("SELECT user_id AS id, email, password, nickname, profile_image AS profileImage, total_distance AS totalDistance, created_at AS createdAt, updated_at AS updatedAt FROM users WHERE email = #{email}")
     User findByEmail(@Param("email") String email);
 }
+

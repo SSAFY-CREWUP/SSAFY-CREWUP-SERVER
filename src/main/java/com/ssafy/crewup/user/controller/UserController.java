@@ -2,8 +2,8 @@ package com.ssafy.crewup.user.controller;
 
 import com.ssafy.crewup.global.common.code.SuccessCode;
 import com.ssafy.crewup.global.common.dto.ApiResponseBody;
+import com.ssafy.crewup.user.dto.request.LoginRequest;
 import com.ssafy.crewup.user.dto.request.UserCreateRequest;
-import com.ssafy.crewup.user.dto.response.UserGetResponse;
 import com.ssafy.crewup.user.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -24,17 +24,34 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponseBody<UserGetResponse>> signup(
+    public ResponseEntity<ApiResponseBody<Void>> signup(
             @Valid @RequestBody UserCreateRequest request,
             HttpSession session) {
 
-        UserGetResponse response = userService.signup(request);
+        Long userId = userService.signup(request);
 
-        // 회원가입 후 자동 로그인 (세션에 userId 저장)
-        session.setAttribute("userId", response.getUserId());
+        // 세션에 userId 저장 (자동 로그인)
+        session.setAttribute("userId", userId);
 
-        return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.OK, response));
+        return ResponseEntity.ok(
+                ApiResponseBody.onSuccess(SuccessCode.SIGNUP_SUCCESS)
+                );
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponseBody<Void>> login(
+            @Valid @RequestBody LoginRequest request,
+            HttpSession session) {
 
+        Long userId = userService.login(request);
+
+        // 세션에 userId 저장
+        session.setAttribute("userId", userId);
+
+        return ResponseEntity.ok(
+                ApiResponseBody.onSuccess(SuccessCode.LOGIN_SUCCESS)
+        );
+
+    }
 }
+

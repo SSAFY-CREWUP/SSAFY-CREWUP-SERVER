@@ -28,5 +28,5 @@ public class UserCreateRequest {
                 .totalDistance(0)
                 .build();
     }
-
 }
+

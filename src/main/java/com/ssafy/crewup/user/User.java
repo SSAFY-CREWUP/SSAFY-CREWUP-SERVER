@@ -20,3 +20,4 @@ public class User extends BaseTime {
     private String profileImage;  // TEXT
     private Integer totalDistance;
 }
+
