@@ -16,5 +16,7 @@ public interface ScheduleService {
     // 스케줄 생성
     Long createSchedule(ScheduleCreateRequest request, Long userId);
 
+    //일정 참가하기
     void joinSchedule(Long scheduleId, Long userId);
+
 }

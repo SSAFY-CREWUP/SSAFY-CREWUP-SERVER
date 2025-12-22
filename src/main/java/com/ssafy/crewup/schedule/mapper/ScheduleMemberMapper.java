@@ -39,4 +39,17 @@ public interface ScheduleMemberMapper {
             "VALUES(#{scheduleId}, #{userId}, #{status})")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int insert(ScheduleMember scheduleMember);
+
+    // 여러 스케줄의 참가자를 한 번에 조회
+    @Select("<script>" +
+            "SELECT id, schedule_id AS scheduleId, user_id AS userId, " +
+            "status, attended_at AS attendedAt, " +
+            "created_at AS createdAt, updated_at AS updatedAt " +
+            "FROM schedule_member " +
+            "WHERE schedule_id IN " +
+            "<foreach item='id' collection='scheduleIds' open='(' separator=',' close=')'>" +
+            "#{id}" +
+            "</foreach>" +
+            "</script>")
+    List<ScheduleMember> findByScheduleIds(@Param("scheduleIds") List<Long> scheduleIds);
 }

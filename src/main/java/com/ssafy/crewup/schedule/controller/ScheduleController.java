@@ -36,7 +36,7 @@ public class ScheduleController {
     }
 
     // 스케줄 상세 조회
-    @GetMapping("/{scheduleId}")
+    @GetMapping("/{scheduleId}/detail")
     public ResponseEntity<ApiResponseBody<ScheduleGetResponse>> getScheduleDetail(
             @PathVariable Long scheduleId) {
 
@@ -91,19 +91,17 @@ public ResponseEntity<ApiResponseBody<Void>> createSchedule(
     // 스케줄 참가
     // ScheduleController.java
 
-    @PostMapping("/{scheduleId}/join/{userId}")
+    @PostMapping("/{scheduleId}/join")
     public ResponseEntity<ApiResponseBody<Void>> joinSchedule(
             @PathVariable Long scheduleId,
-            @PathVariable Long userId,
             HttpSession session) {
 
-        // 1. 보안 체크: 세션의 유저와 경로의 userId가 일치하는지 검증
-        Long sessionUserId = (Long) session.getAttribute("userId");
-        if (sessionUserId == null || !sessionUserId.equals(userId)) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED); // 본인이 아니면 요청 거부
+        Long userId = (Long) session.getAttribute("userId");
+
+        if (userId == null) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
         }
 
-        // 2. 서비스 호출
         scheduleService.joinSchedule(scheduleId, userId);
 
         return ResponseEntity.ok(
