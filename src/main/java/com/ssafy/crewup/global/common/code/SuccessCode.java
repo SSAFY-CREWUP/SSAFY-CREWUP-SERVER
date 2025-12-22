@@ -13,6 +13,7 @@ public enum SuccessCode implements BaseCode {
 
     // 회원가입 관련
     SIGNUP_SUCCESS(HttpStatus.CREATED, "회원가입이 완료되었습니다."),
+    USER_ADDITIONAL_INFO_SUCCESS(HttpStatus.OK,"추가정보 기입이 완료되었습니다."),
 
     // 로그인/로그아웃 관련
     LOGIN_SUCCESS(HttpStatus.OK, "로그인이 완료되었습니다."),
