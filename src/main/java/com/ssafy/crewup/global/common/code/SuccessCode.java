@@ -27,3 +27,4 @@ public enum SuccessCode implements BaseCode {
 	private final String message;
 
 }
+

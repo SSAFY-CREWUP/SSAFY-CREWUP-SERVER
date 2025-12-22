@@ -5,10 +5,9 @@ import com.ssafy.crewup.user.dto.request.UserCreateRequest;
 
 
 public interface UserService {
-    /**
-     회원가입
-     */
+    //회원가입
     Long signup(UserCreateRequest request,String profileImageUrl);
+    //로그인
     Long login(LoginRequest request);
 }
 
