@@ -8,7 +8,7 @@ public interface UserService {
     /**
      회원가입
      */
-    Long signup(UserCreateRequest request);
+    Long signup(UserCreateRequest request,String profileImageUrl);
     Long login(LoginRequest request);
 }
 

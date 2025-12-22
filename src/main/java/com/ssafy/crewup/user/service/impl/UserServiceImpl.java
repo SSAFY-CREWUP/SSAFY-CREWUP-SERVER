@@ -21,7 +21,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Long signup(UserCreateRequest request) {
+    public Long signup(UserCreateRequest request, String profileImageUrl) {
         // 1. 이메일 중복 체크
         int emailCount = userMapper.countByEmail(request.getEmail());
 
@@ -29,10 +29,10 @@ public class UserServiceImpl implements UserService {
             throw new CustomException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
-        // 2. User 엔티티 생성
-        User user = request.toEntity(request.getPassword());
+        // 2. User 엔티티 생성 (profileImageUrl 포함)
+        User user = request.toEntity(request.getPassword(), profileImageUrl);
 
-        // 3. DB 저장 (id 자동 설정됨)
+        // 3. DB 저장
         userMapper.insert(user);
 
         // 4. userId 반환
@@ -57,3 +57,4 @@ public class UserServiceImpl implements UserService {
         return user.getId();
     }
 }
+

@@ -2,31 +2,31 @@ package com.ssafy.crewup.user.dto.request;
 
 import com.ssafy.crewup.user.User;
 import jakarta.validation.constraints.NotBlank;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
-@Setter
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class UserCreateRequest {
+
     @NotBlank
     private String email;
+
     @NotBlank
     private String password;
+
     @NotBlank
     private String nickname;
 
-    private String profileImage;
-
-    // DTO -> Entity 변환
-    public User toEntity(String encodedPassword) {
+    public User toEntity(String password, String profileImageUrl) {
         return User.builder()
                 .email(this.email)
-                .password(encodedPassword)
+                .password(password)
                 .nickname(this.nickname)
-                .profileImage(this.profileImage)
+                .profileImage(profileImageUrl)
                 .totalDistance(0)
                 .build();
     }
 }
-
