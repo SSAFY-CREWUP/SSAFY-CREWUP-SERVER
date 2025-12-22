@@ -4,4 +4,96 @@
 
 <mapper namespace="com.ssafy.crewup.course.mapper.CourseMapper">
 
+    <insert id="insertCourse" parameterType="com.ssafy.crewup.course.Course"
+            useGeneratedKeys="true" keyProperty="id" keyColumn="course_id">
+        INSERT INTO course (
+            writer_id, title, description,
+            path, main_point,
+            distance, expected_time, difficulty,
+            scrap_count, thumbnail, ai_summary, ai_keywords, created_at, updated_at
+        ) VALUES (
+                     #{writerId}, #{title}, #{description},
+                     ST_GeomFromText(#{pathWkt}, 4326), ST_GeomFromText(#{mainPointWkt}, 4326),
+                     #{distance}, #{expectedTime}, #{difficulty},
+                     0, #{thumbnail}, #{aiSummary}, #{aiKeywords}, NOW(), NOW()
+                 )
+    </insert>
+
+    <resultMap id="CourseDetailMap" type="com.ssafy.crewup.course.dto.response.CourseGetResponse">
+        <id property="courseId" column="course_id"/>
+        <result property="title" column="title"/>
+        <result property="description" column="description"/>
+        <result property="pathWkt" column="path_wkt_string"/>
+        <result property="distance" column="distance"/>
+        <result property="expectedTime" column="expected_time"/>
+        <result property="difficulty" column="difficulty"/>
+        <result property="scrapCount" column="scrap_count"/>
+        <result property="thumbnail" column="thumbnail"/>
+        <result property="aiSummary" column="ai_summary"/>
+        <result property="createdAt" column="created_at"/>
+
+        <association property="writer" javaType="com.ssafy.crewup.course.dto.common.WriterDto">
+            <id property="userId" column="user_id"/>
+            <result property="nickname" column="nickname"/>
+            <result property="profileImage" column="profile_image"/>
+        </association>
+    </resultMap>
+
+    <select id="selectCourseDetail" resultMap="CourseDetailMap">
+        SELECT
+            c.course_id, c.title, c.description, c.distance, c.expected_time,
+            c.difficulty, c.scrap_count, c.thumbnail, c.ai_summary, c.created_at,
+            ST_AsText(c.path) AS path_wkt_string,
+            u.user_id, u.nickname, u.profile_image
+        FROM course c
+                 JOIN users u ON c.writer_id = u.user_id
+        WHERE c.course_id = #{courseId}
+    </select>
+
+    <select id="selectCourseList" resultType="com.ssafy.crewup.course.dto.response.CourseListResponse">
+        SELECT
+        course_id AS courseId,
+        title, thumbnail, distance, expected_time, difficulty, scrap_count,
+        ST_AsText(main_point) AS mainPointWkt
+        FROM course
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (title LIKE CONCAT('%', #{keyword}, '%') OR description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="difficulty != null">
+                AND difficulty = #{difficulty}
+            </if>
+        </where>
+        ORDER BY created_at DESC
+    </select>
+
+    <insert id="insertReview" parameterType="com.ssafy.crewup.course.CourseReview"
+            useGeneratedKeys="true" keyProperty="id" keyColumn="review_id">
+        INSERT INTO course_review (
+            course_id, writer_id, content, rating, image, created_at, updated_at
+        ) VALUES (
+                     #{courseId}, #{writerId}, #{content}, #{rating}, #{image}, NOW(), NOW()
+                 )
+    </insert>
+
+    <select id="existsScrap" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM course_scrap
+        WHERE user_id = #{userId} AND course_id = #{courseId}
+    </select>
+
+    <insert id="insertScrap">
+        INSERT INTO course_scrap (user_id, course_id, created_at, updated_at)
+        VALUES (#{userId}, #{courseId}, NOW(), NOW())
+    </insert>
+
+    <delete id="deleteScrap">
+        DELETE FROM course_scrap WHERE user_id = #{userId} AND course_id = #{courseId}
+    </delete>
+
+    <update id="updateScrapCount">
+        UPDATE course
+        SET scrap_count = scrap_count + #{delta}
+        WHERE course_id = #{courseId}
+    </update>
+
 </mapper>
