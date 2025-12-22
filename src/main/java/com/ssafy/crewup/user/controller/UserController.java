@@ -53,5 +53,17 @@ public class UserController {
         );
 
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponseBody<Void>> logout(HttpSession session) {
+
+        // 세션 무효화
+        session.invalidate();
+
+        return ResponseEntity.ok(
+                ApiResponseBody.onSuccess(SuccessCode.LOGOUT_SUCCESS)
+        );
+    }
 }
+
 
