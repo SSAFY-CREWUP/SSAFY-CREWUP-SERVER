@@ -38,7 +38,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         List<Schedule> schedules = scheduleMapper.findByCrewId(crewId);
 
         if (schedules.isEmpty()) {
-            return List.of();
+            throw new CustomException(ErrorCode.SCHEDULE_NOT_FOUND);
         }
 
         // 2. 모든 스케줄 ID 추출
@@ -51,7 +51,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
         if (allMembers.isEmpty()) {
             return schedules.stream()
-                    .map(schedule -> ScheduleGetResponse.of(schedule, List.of()))
+                    .map(schedule -> ScheduleGetResponse.from(schedule, List.of()))
                     .collect(Collectors.toList());
         }
 
@@ -86,7 +86,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                             })
                             .collect(Collectors.toList());
 
-                    return ScheduleGetResponse.of(schedule, memberResponses);
+                    return ScheduleGetResponse.from(schedule, memberResponses);
                 })
                 .collect(Collectors.toList());
     }
@@ -104,7 +104,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         List<ScheduleMember> members = scheduleMemberMapper.findByScheduleId(scheduleId);
 
         if (members.isEmpty()) {
-            return ScheduleGetResponse.of(schedule, List.of());
+            return ScheduleGetResponse.from(schedule, List.of());
         }
 
         // 3. 참가자들의 userId 추출
@@ -124,11 +124,11 @@ public class ScheduleServiceImpl implements ScheduleService {
                 .map(member -> {
                     User user = userMap.get(member.getUserId());
                     UserResponse userSimple = UserResponse.from(user);
-                    return ScheduleMemberResponse.of(member, userSimple);  // of 사용!
+                    return ScheduleMemberResponse.of(member, userSimple);
                 })
                 .collect(Collectors.toList());
 
-        return ScheduleGetResponse.of(schedule, memberResponses);
+        return ScheduleGetResponse.from(schedule, memberResponses);
     }
 
     @Transactional
@@ -137,8 +137,6 @@ public class ScheduleServiceImpl implements ScheduleService {
         // 1. 일정 데이터 생성 및 INSERT
         Schedule schedule = request.toEntity();
         scheduleMapper.insert(schedule);
-
-        // scheduleMapper.insert가 실행된 후, schedule.getId()에는 DB에서 생성된 ID가 들어있습니다.
 
         // 2. 방장을 참여 멤버 테이블에 참석으로
         ScheduleMember leader = ScheduleMember.builder()
@@ -149,63 +147,44 @@ public class ScheduleServiceImpl implements ScheduleService {
 
         scheduleMemberMapper.insert(leader);
 
-        log.info("일정 생성 완료 - ID: {}, 생성자: {}", schedule.getId(), userId);
         return schedule.getId();
     }
 
     @Override
     @Transactional
     public void joinSchedule(Long scheduleId, Long userId) {
-        log.info("=== 스케줄 참가 시작 ===");
-        log.info("scheduleId: {}, userId: {}", scheduleId, userId);
-
         try {
             // 1. 스케줄 존재 확인
-            log.info("1. 스케줄 조회 중...");
             Schedule schedule = scheduleMapper.findById(scheduleId);
-            log.info("조회된 스케줄: {}", schedule);
 
             if (schedule == null) {
-                log.warn("스케줄을 찾을 수 없음");
                 throw new CustomException(ErrorCode.SCHEDULE_NOT_FOUND);
             }
-            log.info("스케줄 조회 성공: maxPeople={}", schedule.getMaxPeople());
 
             // 2. 이미 참가 중인지 확인
-            log.info("2. 중복 체크 중...");
             int count = scheduleMemberMapper.countByScheduleIdAndUserId(scheduleId, userId);
-            log.info("중복 체크 결과: {}", count);
 
             if (count > 0) {
-                log.warn("이미 참가 중");
                 throw new CustomException(ErrorCode.ALREADY_JOINED);
             }
 
             // 3. 최대 인원 확인
-            log.info("3. 인원 체크 중...");
             List<ScheduleMember> members = scheduleMemberMapper.findByScheduleId(scheduleId);
-            log.info("현재 참가 인원: {}/{}", members.size(), schedule.getMaxPeople());
 
             if (members.size() >= schedule.getMaxPeople()) {
-                log.warn("인원 가득 참");
                 throw new CustomException(ErrorCode.SCHEDULE_FULL);
             }
 
             // 4. 참가 신청
-            log.info("4. 참가 신청 중...");
             ScheduleMember scheduleMember = ScheduleMember.builder()
                     .scheduleId(scheduleId)
                     .userId(userId)
-                    .status(ScheduleMemberStatus.PENDING)
+                    .status(ScheduleMemberStatus.PENDING) //가본값: 대기 설정
                     .build();
-
             int result = scheduleMemberMapper.insert(scheduleMember);
-            log.info("INSERT 결과: {}, 생성된 ID: {}", result, scheduleMember.getId());
 
-            log.info("=== 스케줄 참가 완료 ===");
 
         } catch (Exception e) {
-            log.error("스케줄 참가 실패", e);
             throw e;
         }
     }

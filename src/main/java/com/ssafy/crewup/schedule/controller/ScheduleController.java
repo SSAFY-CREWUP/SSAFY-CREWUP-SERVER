@@ -46,34 +46,7 @@ public class ScheduleController {
                 ApiResponseBody.onSuccess(SuccessCode.SCHEDULE_DETAIL_SUCCESS, schedule)
         );
     }
-//    // ScheduleController.java
-//    @PostMapping("/create")
-//    public ResponseEntity<ApiResponseBody<Void>> createSchedule(
-//            @Valid @RequestBody ScheduleCreateRequest request) {
-//
-//        log.info("=== [Controller] createSchedule 진입 ==="); // 이게 찍히는지 확인!
-//        log.info("Request Body: {}", request);
-//
-//        scheduleService.createSchedule(request);
-//        return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.SCHEDULE_CREATE_SUCCESS));
-//    }
 
-//    // ScheduleController.java
-//    @PostMapping("/{crewId}/create") // URL에 crewId 포함
-//    public ResponseEntity<ApiResponseBody<Void>> createSchedule(
-//            @PathVariable Long crewId, // 경로 파라미터로 받음
-//            @Valid @RequestBody ScheduleCreateRequest request) {
-//
-//        // DTO 내부의 crewId를 경로 파라미터 값으로 강제 설정 (보안 및 정합성)
-//        request.setCrewId(crewId);
-//
-//        scheduleService.createSchedule(request);
-//
-//        return ResponseEntity.ok(
-//                ApiResponseBody.onSuccess(SuccessCode.SCHEDULE_CREATE_SUCCESS)
-//        );
-//    }
-// ScheduleController.java
 @PostMapping("/{crewId}/create")
 public ResponseEntity<ApiResponseBody<Void>> createSchedule(
         @PathVariable Long crewId,
