@@ -20,4 +20,5 @@ public class Notification extends BaseTime {
     private String url;
     private Boolean isRead;
     private NotificationType type;   // ENUM
+    private String crewName; // 크루명 추가
 }
