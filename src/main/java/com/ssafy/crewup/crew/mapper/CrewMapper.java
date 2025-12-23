@@ -11,6 +11,7 @@ import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.Select;
 
 import com.ssafy.crewup.crew.Crew;
+import com.ssafy.crewup.crew.dto.response.CrewMemberDetailResponse;
 import com.ssafy.crewup.crew.dto.request.CrewSearchRequest;
 import com.ssafy.crewup.crew.dto.response.CrewListResponse;
 
@@ -34,4 +35,10 @@ public interface CrewMapper {
 	Crew findById(@Param("id") Long id);
 
 	List<CrewListResponse> searchCrews(CrewSearchRequest request);
+
+	@Select("SELECT u.user_id AS userId, u.nickname, u.profile_image AS profileImage, cm.role " +
+		"FROM crew_member cm " +
+		"JOIN users u ON cm.user_id = u.user_id " +
+		"WHERE cm.crew_id = #{crewId} AND cm.status = 'ACCEPTED'")
+	List<CrewMemberDetailResponse> findMembersByCrewId(@Param("crewId") Long crewId);
 }

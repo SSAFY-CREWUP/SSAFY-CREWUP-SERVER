@@ -1,24 +1,25 @@
 package com.ssafy.crewup.course.mapper;
 
-import com.ssafy.crewup.course.CourseScrap;
+import com.ssafy.crewup.course.dto.response.CourseListResponse;
 import org.apache.ibatis.annotations.*;
+
 import java.util.List;
 
 @Mapper
 public interface CourseScrapMapper {
-    @Select("SELECT id, user_id AS userId, course_id AS courseId, created_at AS createdAt, updated_at AS updatedAt FROM course_scrap WHERE id = #{id}")
-    CourseScrap findById(@Param("id") Long id);
+    boolean existsScrap(@Param("userId") Long userId, @Param("courseId") Long courseId);
 
-    @Insert("INSERT INTO course_scrap(user_id, course_id) VALUES(#{userId}, #{courseId})")
-    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
-    int insert(CourseScrap scrap);
+    void insertScrap(@Param("userId") Long userId, @Param("courseId") Long courseId);
 
-    @Delete("DELETE FROM course_scrap WHERE id = #{id}")
-    int delete(@Param("id") Long id);
+    void deleteScrap(@Param("userId") Long userId, @Param("courseId") Long courseId);
 
-    @Select("SELECT id, user_id AS userId, course_id AS courseId, created_at AS createdAt, updated_at AS updatedAt FROM course_scrap WHERE user_id = #{userId}")
-    List<CourseScrap> findByUserId(@Param("userId") Long userId);
+    void updateScrapCount(@Param("courseId") Long courseId, @Param("delta") int delta);
 
-    @Select("SELECT id, user_id AS userId, course_id AS courseId, created_at AS createdAt, updated_at AS updatedAt FROM course_scrap WHERE course_id = #{courseId}")
-    List<CourseScrap> findByCourseId(@Param("courseId") Long courseId);
+    void deleteScrapsByCourseId(Long courseId);
+
+    List<CourseListResponse> selectMyScrapCourses(
+            @Param("userId") Long userId,
+            @Param("offset") int offset,
+            @Param("size") int size
+    );
 }

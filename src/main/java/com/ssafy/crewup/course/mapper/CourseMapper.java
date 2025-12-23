@@ -1,20 +1,50 @@
 package com.ssafy.crewup.course.mapper;
 
 import com.ssafy.crewup.course.Course;
+import com.ssafy.crewup.course.dto.request.CourseSearchCondition;
+import com.ssafy.crewup.course.dto.request.CourseUpdateRequest;
+import com.ssafy.crewup.course.dto.response.CourseGetResponse;
+import com.ssafy.crewup.course.dto.response.CourseListResponse;
 import org.apache.ibatis.annotations.*;
+
+import java.util.List;
+import java.util.Optional;
+
 
 @Mapper
 public interface CourseMapper {
-    @Select("SELECT course_id AS id, writer_id AS writerId, title, description, ST_AsText(path) AS pathWkt, ST_AsText(main_point) AS mainPointWkt, distance, scrap_count AS scrapCount, thumbnail, ai_summary AS aiSummary, JSON_EXTRACT(ai_keywords, '$') AS aiKeywordsJson, created_at AS createdAt, updated_at AS updatedAt FROM course WHERE course_id = #{id}")
-    Course findById(@Param("id") Long id);
+    // 1. 코스 조회 (단건, Entity 반환)
+    Optional<Course> selectCourseById(@Param("courseId") Long courseId);
 
-    @Insert("INSERT INTO course(writer_id, title, description, path, main_point, distance, scrap_count, thumbnail, ai_summary, ai_keywords) VALUES(#{writerId}, #{title}, #{description}, ST_GeomFromText(#{pathWkt}, 4326), ST_GeomFromText(#{mainPointWkt}, 4326), #{distance}, #{scrapCount}, #{thumbnail}, #{aiSummary}, CAST(#{aiKeywordsJson} AS JSON))")
-    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "course_id")
-    int insert(Course course);
+    // 2. 코스 등록
+    void insertCourse(Course course);
 
-    @Update("UPDATE course SET title=#{title}, description=#{description}, path=ST_GeomFromText(#{pathWkt}, 4326), main_point=ST_GeomFromText(#{mainPointWkt}, 4326), distance=#{distance}, scrap_count=#{scrapCount}, thumbnail=#{thumbnail}, ai_summary=#{aiSummary}, ai_keywords=CAST(#{aiKeywordsJson} AS JSON) WHERE course_id=#{id}")
-    int update(Course course);
+    // 3. 코스 상세 조회 (DTO 반환)
+    CourseGetResponse selectCourseDetail(
+            @Param("courseId") Long courseId,
+            @Param("userId") Long userId
+    );
 
-    @Delete("DELETE FROM course WHERE course_id = #{id}")
-    int delete(@Param("id") Long id);
+    // 4. 코스 목록 검색 (통합 검색)
+    List<CourseListResponse> selectCourseList(CourseSearchCondition condition);
+
+    // 5. 코스 조회수 증가
+    void increaseViewCount(@Param("courseId") Long courseId);
+
+    // 6. 내 코스 조회
+    List<CourseListResponse> selectMyCourses(
+            @Param("userId") Long userId,
+            @Param("offset") int offset,
+            @Param("size") int size
+    );
+
+    // 7. 코스 수정
+    void updateCourse(
+            @Param("courseId") Long courseId,
+            @Param("req") CourseUpdateRequest request,
+            @Param("imageUrl") String imageUrl
+    );
+
+    // 8. 코스 삭제
+    void deleteCourse(@Param("courseId") Long courseId);
 }
