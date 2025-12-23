@@ -25,7 +25,7 @@ public class CourseGetResponse {
     private Integer scrapCount;
     private String thumbnail;
     private String aiSummary;
-    private List<String> aiKeywords; // DB의 JSON String -> List 변환
+    private String aiKeywords;
     private String pathWkt;          // DB: path (LINESTRING)
 
     // 작성자 정보

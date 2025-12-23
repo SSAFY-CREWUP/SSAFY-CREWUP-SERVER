@@ -3,6 +3,14 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.ssafy.crewup.course.mapper.CourseMapper">
+    <select id="selectCourseById" resultType="com.ssafy.crewup.course.Course">
+        SELECT
+            course_id, writer_id, title, description, thumbnail,
+            distance, expected_time, difficulty, scrap_count, view_count,
+            created_at, updated_at
+        FROM course
+        WHERE course_id = #{courseId}
+    </select>
 
     <insert id="insertCourse" parameterType="com.ssafy.crewup.course.Course"
             useGeneratedKeys="true" keyProperty="id" keyColumn="course_id">
@@ -31,6 +39,8 @@
         <result property="thumbnail" column="thumbnail"/>
         <result property="aiSummary" column="ai_summary"/>
         <result property="createdAt" column="created_at"/>
+        <result property="aiKeywords" column="ai_keywords"/>
+        <result property="isScrapped" column="isScrapped"/>
 
         <association property="writer" javaType="com.ssafy.crewup.course.dto.common.WriterDto">
             <id property="userId" column="user_id"/>
@@ -42,58 +52,108 @@
     <select id="selectCourseDetail" resultMap="CourseDetailMap">
         SELECT
             c.course_id, c.title, c.description, c.distance, c.expected_time,
-            c.difficulty, c.scrap_count, c.thumbnail, c.ai_summary, c.created_at,
-            ST_AsText(c.path) AS path_wkt_string,
+            c.difficulty, c.scrap_count, c.thumbnail, c.created_at,
+            c.view_count,
+            c.ai_summary,   c.ai_keywords,  ST_AsText(c.path) AS path_wkt_string,
+
+            (SELECT COUNT(*) FROM course_scrap s
+             WHERE s.course_id = c.course_id AND s.user_id = #{userId}) > 0 AS isScrapped,
+
             u.user_id, u.nickname, u.profile_image
         FROM course c
                  JOIN users u ON c.writer_id = u.user_id
         WHERE c.course_id = #{courseId}
     </select>
 
-    <select id="selectCourseList" resultType="com.ssafy.crewup.course.dto.response.CourseListResponse">
+    <select id="selectCourseList" parameterType="com.ssafy.crewup.course.dto.request.CourseSearchCondition"
+            resultType="com.ssafy.crewup.course.dto.response.CourseListResponse">
         SELECT
-        course_id AS courseId,
-        title, thumbnail, distance, expected_time, difficulty, scrap_count,
-        ST_AsText(main_point) AS mainPointWkt
-        FROM course
-        <where>
-            <if test="keyword != null and keyword != ''">
-                AND (title LIKE CONCAT('%', #{keyword}, '%') OR description LIKE CONCAT('%', #{keyword}, '%'))
-            </if>
-            <if test="difficulty != null">
-                AND difficulty = #{difficulty}
-            </if>
-        </where>
-        ORDER BY created_at DESC
+        c.course_id,
+        c.title,
+        c.thumbnail,
+        c.difficulty,
+        c.view_count,
+        c.distance,
+        c.expected_time,
+        c.scrap_count,
+        u.nickname as writer_nickname,
+
+        <choose>
+            <when test="lat != null and lng != null">
+                ST_Distance_Sphere(c.main_point, ST_SRID(POINT(#{lng}, #{lat}), 4326))
+            </when>
+            <otherwise>
+                0
+            </otherwise>
+        </choose> AS current_distance
+
+        FROM course c
+        JOIN users u ON c.writer_id = u.user_id
+        WHERE 1=1
+
+        <if test="lat != null and lng != null and radius != null">
+            AND ST_Distance_Sphere(c.main_point, ST_SRID(POINT(#{lng}, #{lat}), 4326)) &lt;= #{radius}
+        </if>
+
+        <if test="keyword != null and keyword != ''">
+            AND (c.title LIKE CONCAT('%', #{keyword}, '%')
+            OR c.description LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+
+        <if test="difficulty != null and difficulty != ''">
+            AND c.difficulty = #{difficulty}
+        </if>
+
+        ORDER BY
+        <choose>
+            <when test="sort == 'popular'"> c.scrap_count DESC, c.created_at DESC </when>
+
+            <when test="sort == 'distance' and lat != null and lng != null">
+                current_distance ASC
+            </when>
+
+            <otherwise>
+                c.created_at DESC
+            </otherwise>
+        </choose>
+
+        LIMIT #{size} OFFSET #{offset}
     </select>
 
-    <insert id="insertReview" parameterType="com.ssafy.crewup.course.CourseReview"
-            useGeneratedKeys="true" keyProperty="id" keyColumn="review_id">
-        INSERT INTO course_review (
-            course_id, writer_id, content, rating, image, created_at, updated_at
-        ) VALUES (
-                     #{courseId}, #{writerId}, #{content}, #{rating}, #{image}, NOW(), NOW()
-                 )
-    </insert>
-
-    <select id="existsScrap" resultType="boolean">
-        SELECT COUNT(*) > 0 FROM course_scrap
-        WHERE user_id = #{userId} AND course_id = #{courseId}
-    </select>
-
-    <insert id="insertScrap">
-        INSERT INTO course_scrap (user_id, course_id, created_at, updated_at)
-        VALUES (#{userId}, #{courseId}, NOW(), NOW())
-    </insert>
-
-    <delete id="deleteScrap">
-        DELETE FROM course_scrap WHERE user_id = #{userId} AND course_id = #{courseId}
-    </delete>
-
-    <update id="updateScrapCount">
+    <update id="increaseViewCount">
         UPDATE course
-        SET scrap_count = scrap_count + #{delta}
+        SET view_count = view_count + 1
         WHERE course_id = #{courseId}
     </update>
+
+    <select id="selectMyCourses" resultType="com.ssafy.crewup.course.dto.response.CourseListResponse">
+        SELECT
+            c.course_id, c.title, c.thumbnail, c.difficulty,
+            c.distance, c.expected_time, c.scrap_count,
+            u.nickname AS writerNickname,
+            0.0 AS currentDistance
+        FROM course c
+                 JOIN users u ON c.writer_id = u.user_id
+        WHERE c.writer_id = #{userId}
+        ORDER BY c.created_at DESC
+            LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <update id="updateCourse">
+        UPDATE course
+        SET
+            title = #{req.title},
+            description = #{req.description},
+            distance = #{req.distance},
+            expected_time = #{req.expectedTime},
+            difficulty = #{req.difficulty},
+            thumbnail = #{imageUrl},
+            updated_at = NOW()
+        WHERE course_id = #{courseId}
+    </update>
+
+    <delete id="deleteCourse">
+        DELETE FROM course WHERE course_id = #{courseId}
+    </delete>
 
 </mapper>

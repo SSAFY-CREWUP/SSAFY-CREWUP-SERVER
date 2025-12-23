@@ -15,6 +15,8 @@ public class CourseListResponse {
     private Integer expectedTime;   // 분 단위
     private String difficulty;      // EASY, NORMAL, HARD
     private Integer scrapCount;     // 스크랩 수
+    private Double currentDistance;  // current_distance
 
+    private Integer viewCount;
     private String mainPointWkt;
 }
