@@ -23,6 +23,8 @@ spring:
 mybatis:
   mapper-locations: classpath:mapper/**/*.xml
   type-aliases-package: com.ssafy.crewup.domain
+  type-handlers-package: com.ssafy.crewup.global.config
   configuration:
     map-underscore-to-camel-case: true
     jdbc-type-for-null: NULL
+    default-enum-type-handler: org.apache.ibatis.type.EnumTypeHandler
