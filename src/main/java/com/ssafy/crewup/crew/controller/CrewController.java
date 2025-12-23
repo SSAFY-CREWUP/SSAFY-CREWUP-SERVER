@@ -5,6 +5,7 @@ import java.util.List;
 import com.ssafy.crewup.crew.dto.request.CrewCreateRequest;
 import com.ssafy.crewup.crew.dto.request.CrewSearchRequest;
 import com.ssafy.crewup.crew.dto.response.CrewCreateResponse;
+import com.ssafy.crewup.crew.dto.response.CrewDetailResponse;
 import com.ssafy.crewup.crew.dto.response.CrewListResponse;
 import com.ssafy.crewup.crew.service.CrewService;
 import com.ssafy.crewup.global.common.code.ErrorCode;
@@ -60,5 +61,25 @@ public class CrewController {
 		return ResponseEntity.ok(
 			ApiResponseBody.onSuccess(SuccessCode.OK, crews)
 		);
+	}
+
+	@GetMapping("/{crewId}")
+	public ResponseEntity<ApiResponseBody<CrewDetailResponse>> getCrewDetail(
+		@PathVariable("crewId") Long crewId
+	) {
+		CrewDetailResponse response = crewService.getCrewDetail(crewId);
+		return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.OK, response));
+	}
+
+	@PostMapping("/{crewId}/join")
+	public ResponseEntity<ApiResponseBody<Void>> joinCrew(
+		@PathVariable("crewId") Long crewId,
+		HttpSession session
+	) {
+		Long userId = (Long) session.getAttribute("userId");
+		if (userId == null) throw new CustomException(ErrorCode.UNAUTHORIZED);
+
+		crewService.joinCrew(crewId, userId);
+		return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.OK));
 	}
 }

@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.ssafy.crewup.crew.Crew;
 import com.ssafy.crewup.crew.CrewMember;
 import com.ssafy.crewup.crew.dto.request.CrewCreateRequest;
+import com.ssafy.crewup.crew.dto.response.CrewDetailResponse;
+import com.ssafy.crewup.crew.dto.response.CrewMemberDetailResponse;
 import com.ssafy.crewup.crew.dto.request.CrewSearchRequest;
 import com.ssafy.crewup.crew.dto.response.CrewListResponse;
 import com.ssafy.crewup.crew.mapper.CrewMapper;
@@ -75,6 +77,65 @@ public class CrewServiceImpl implements CrewService {
 			.build());
 
 		return crew.getId();
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public CrewDetailResponse getCrewDetail(Long crewId) {
+		// 1. 크루 정보 조회
+		Crew crew = crewMapper.findById(crewId);
+		if (crew == null) {
+			throw new CustomException(ErrorCode.NOT_FOUND);
+		}
+
+		// 2. 크루 멤버 정보 조회
+		List<CrewMemberDetailResponse> members = crewMapper.findMembersByCrewId(crewId);
+
+		// 3. Response DTO로 변환
+		return new CrewDetailResponse(
+			crew.getId(),
+			crew.getName(),
+			crew.getDescription(),
+			crew.getCrewImage(),
+			crew.getRegion(),
+			crew.getMemberCount(),
+			crew.getActivityTime(),
+			crew.getAgeGroup(),
+			crew.getGenderLimit(),
+			crew.getAveragePace(),
+			crew.getKeywords(),
+			members
+		);
+	}
+
+	@Override
+	@Transactional
+	public void joinCrew(Long crewId, Long userId) {
+		// 1. 크루 존재 여부 확인
+		if (crewMapper.findById(crewId) == null) {
+			throw new CustomException(ErrorCode.CREW_NOT_FOUND);
+		}
+
+		// 2. 이미 가입 신청했거나 멤버인지 확인
+		CrewMember existingMember = crewMemberMapper.findByCrewIdAndUserId(crewId, userId);
+
+		if (existingMember != null) {
+			// 이미 가입된 상태(ACCEPTED)이거나 대기 중(WAITING)인 경우 모두 예외 처리
+			throw new CustomException(ErrorCode.ALREADY_JOINED_OR_APPLIED);
+		}
+
+		// 3. 새로운 가입 신청 데이터 생성
+		// Role은 일반 MEMBER로, 상태는 WAITING으로 설정합니다.
+		CrewMember newJoinRequest = CrewMember.builder()
+			.crewId(crewId)
+			.userId(userId)
+			.role(CrewMemberRole.MEMBER)
+			.status(CrewMemberStatus.WAITING)
+			.appliedAt(LocalDateTime.now())
+			.build();
+
+		// 4. DB 저장
+		crewMemberMapper.insert(newJoinRequest);
 	}
 
 	@Override
