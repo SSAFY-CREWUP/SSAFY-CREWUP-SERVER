@@ -1,12 +1,16 @@
 package com.ssafy.crewup.crew.service.impl;
 
 import java.time.LocalDateTime;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ssafy.crewup.crew.Crew;
 import com.ssafy.crewup.crew.CrewMember;
 import com.ssafy.crewup.crew.dto.request.CrewCreateRequest;
+import com.ssafy.crewup.crew.dto.request.CrewSearchRequest;
+import com.ssafy.crewup.crew.dto.response.CrewListResponse;
 import com.ssafy.crewup.crew.mapper.CrewMapper;
 import com.ssafy.crewup.crew.mapper.CrewMemberMapper;
 import com.ssafy.crewup.crew.service.CrewService;
@@ -72,4 +76,11 @@ public class CrewServiceImpl implements CrewService {
 
 		return crew.getId();
 	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<CrewListResponse> searchCrews(CrewSearchRequest request) {
+		return crewMapper.searchCrews(request);
+	}
+
 }

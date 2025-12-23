@@ -1,7 +1,57 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ssafy.crewup.crew.mapper.CrewMapper">
+
+    <resultMap id="CrewListMap" type="com.ssafy.crewup.crew.dto.response.CrewListResponse">
+        <constructor>
+            <arg column="crew_id" javaType="Long"/>
+            <arg column="name" javaType="String"/>
+            <arg column="region" javaType="String"/>
+            <arg column="member_count" javaType="Integer"/>
+            <arg column="activity_time" javaType="String"/>
+            <arg column="average_pace" javaType="Double"/>
+            <arg column="age_group" javaType="String"/>
+            <arg column="crew_image" javaType="String"/>
+            <arg column="keywords" javaType="java.util.List"
+                 typeHandler="com.ssafy.crewup.global.config.StringListTypeHandler"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="crewColumns">
+        crew_id, name, region, member_count, activity_time,
+        average_pace, age_group, crew_image, keywords
+    </sql>
+
+    <select id="searchCrews" resultMap="CrewListMap">
+        SELECT <include refid="crewColumns"/>
+        FROM crew
+        <where>
+            <if test="search != null and search != ''">
+                AND name LIKE CONCAT('%', #{search}, '%')
+            </if>
+            <if test="region != null and region != ''">
+                AND region = #{region}
+            </if>
+            <if test="activityTime != null and activityTime != ''">
+                AND activity_time = #{activityTime}
+            </if>
+            <if test="genderLimit != null and genderLimit != ''">
+                AND gender_limit = #{genderLimit}
+            </if>
+            <if test="ageGroup != null and ageGroup != ''">
+                AND age_group = #{ageGroup}
+            </if>
+        </where>
+        ORDER BY
+        <choose>
+            <when test="sort == 'MEMBER_COUNT'">member_count</when>
+            <when test="sort == 'AVERAGE_PACE'">average_pace</when>
+            <otherwise>created_at</otherwise>
+        </choose>
+        <choose>
+            <when test="order == 'ASC'">ASC</when>
+            <otherwise>DESC</otherwise>
+        </choose>
+    </select>
 
 </mapper>

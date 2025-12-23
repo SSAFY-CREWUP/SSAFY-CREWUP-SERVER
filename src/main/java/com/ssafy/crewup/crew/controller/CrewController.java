@@ -1,7 +1,11 @@
 package com.ssafy.crewup.crew.controller;
 
+import java.util.List;
+
 import com.ssafy.crewup.crew.dto.request.CrewCreateRequest;
+import com.ssafy.crewup.crew.dto.request.CrewSearchRequest;
 import com.ssafy.crewup.crew.dto.response.CrewCreateResponse;
+import com.ssafy.crewup.crew.dto.response.CrewListResponse;
 import com.ssafy.crewup.crew.service.CrewService;
 import com.ssafy.crewup.global.common.code.ErrorCode;
 import com.ssafy.crewup.global.common.code.SuccessCode;
@@ -43,5 +47,18 @@ public class CrewController {
 		Long crewId = crewService.createCrew(request, uploadedUrl, userId);
 
 		return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.CREATED, new CrewCreateResponse(crewId)));
+	}
+
+	/**
+	 * 크루 목록 조회 및 검색 API
+	 */
+	@GetMapping("/search")
+	public ResponseEntity<ApiResponseBody<List<CrewListResponse>>> searchCrews(
+		@ModelAttribute CrewSearchRequest request
+	) {
+		List<CrewListResponse> crews = crewService.searchCrews(request);
+		return ResponseEntity.ok(
+			ApiResponseBody.onSuccess(SuccessCode.OK, crews)
+		);
 	}
 }
