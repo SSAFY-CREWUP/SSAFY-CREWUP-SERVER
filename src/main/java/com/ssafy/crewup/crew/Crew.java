@@ -1,22 +1,22 @@
 package com.ssafy.crewup.crew;
 
 import com.ssafy.crewup.global.common.code.BaseTime;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import java.util.List;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
 @Builder
 public class Crew extends BaseTime {
-    private Long id;              // crew.crew_id
-    private String name;
-    private String region;
-    private String description;   // TEXT
-    private String crewImage;     // TEXT
-    private Integer memberCount;
+	private Long id;
+	private String name;
+	private String region;
+	private String description;
+	private String crewImage;
+	private Integer memberCount;
+	private String activityTime;
+	private String ageGroup;
+	private String genderLimit;
+	private Double averagePace;
+	private List<String> keywords;
 }

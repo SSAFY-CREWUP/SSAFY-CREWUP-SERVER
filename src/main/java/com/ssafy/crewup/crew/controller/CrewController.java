@@ -9,6 +9,7 @@ import com.ssafy.crewup.global.common.dto.ApiResponseBody;
 import com.ssafy.crewup.global.common.exception.CustomException;
 import com.ssafy.crewup.global.service.S3Service;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,53 +21,27 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class CrewController {
 
-    private final CrewService crewService;
-    private final S3Service s3Service;
+	private final CrewService crewService;
+	private final S3Service s3Service;
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponseBody<CrewCreateResponse>> createCrewWithImage(
-        @RequestPart("request") CrewCreateRequest request,
-        @RequestPart(value = "crewImage", required = false) MultipartFile crewImage,
-        HttpSession session
-    ) {
-        Long userId = (Long) session.getAttribute("userId");
-        if (userId == null) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
-        }
+	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<ApiResponseBody<CrewCreateResponse>> createCrew(
+		@Valid @RequestPart("request") CrewCreateRequest request,
+		@RequestPart(value = "crewImage", required = false) MultipartFile crewImage,
+		HttpSession session
+	) {
+		Long userId = (Long) session.getAttribute("userId");
+		if (userId == null) throw new CustomException(ErrorCode.UNAUTHORIZED);
 
-        CrewCreateRequest effective = request;
-        if (crewImage != null && !crewImage.isEmpty()) {
-            String url = s3Service.uploadFile(crewImage, "crews");
-            effective = new CrewCreateRequest(
-                request.name(),
-                request.region(),
-                request.description(),
-                request.activityTime(),
-                request.ageGroup(),
-                request.genderLimit(),
-                url,
-                request.keywords()
-            );
-        }
+		// 1. 이미지 업로드 처리 (파일이 없으면 null 전달)
+		String uploadedUrl = null;
+		if (crewImage != null && !crewImage.isEmpty()) {
+			uploadedUrl = s3Service.uploadFile(crewImage, "crews");
+		}
 
-        Long crewId = crewService.createCrew(effective, userId);
-        return ResponseEntity.ok(
-            ApiResponseBody.onSuccess(SuccessCode.CREATED, new CrewCreateResponse(crewId))
-        );
-    }
+		// 2. 서비스 호출
+		Long crewId = crewService.createCrew(request, uploadedUrl, userId);
 
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ApiResponseBody<CrewCreateResponse>> createCrew(
-        @RequestBody CrewCreateRequest request,
-        HttpSession session
-    ) {
-        Long userId = (Long) session.getAttribute("userId");
-        if (userId == null) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
-        }
-        Long crewId = crewService.createCrew(request, userId);
-        return ResponseEntity.ok(
-            ApiResponseBody.onSuccess(SuccessCode.CREATED, new CrewCreateResponse(crewId))
-        );
-    }
+		return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.CREATED, new CrewCreateResponse(crewId)));
+	}
 }
