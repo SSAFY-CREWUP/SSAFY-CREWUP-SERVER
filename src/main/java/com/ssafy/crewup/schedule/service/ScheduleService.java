@@ -1,6 +1,8 @@
 package com.ssafy.crewup.schedule.service;
 
 import com.ssafy.crewup.schedule.dto.request.ScheduleCreateRequest;
+import com.ssafy.crewup.schedule.dto.request.ScheduleMemberStatusUpdateRequest;
+import com.ssafy.crewup.schedule.dto.response.ScheduleCreatorCheckResponse;
 import com.ssafy.crewup.schedule.dto.response.ScheduleGetResponse;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,4 +23,10 @@ public interface ScheduleService {
 
     //일정 삭제
     void deleteSchedule(Long scheduleId, Long userId);
+
+    // 생성자 확인
+    ScheduleCreatorCheckResponse checkCreator(Long scheduleId, Long userId);
+
+    // 멤버 상태 변경
+    void updateMemberStatus(Long scheduleId, Long userId, ScheduleMemberStatusUpdateRequest request);
 }

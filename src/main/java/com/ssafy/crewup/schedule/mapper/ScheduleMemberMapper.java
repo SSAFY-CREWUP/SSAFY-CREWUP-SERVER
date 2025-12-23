@@ -1,5 +1,6 @@
 package com.ssafy.crewup.schedule.mapper;
 
+import com.ssafy.crewup.enums.ScheduleMemberStatus;
 import com.ssafy.crewup.schedule.ScheduleMember;
 import org.apache.ibatis.annotations.*;
 import java.util.List;
@@ -55,4 +56,10 @@ public interface ScheduleMemberMapper {
 
     @Delete("DELETE FROM schedule_member WHERE schedule_id = #{scheduleId}")
     int deleteByScheduleId(@Param("scheduleId") Long scheduleId);
+
+    // 상태 업데이트
+    @Update("UPDATE schedule_member SET status=#{status} WHERE id=#{id}")
+    int updateStatus(@Param("id") Long id, @Param("status") ScheduleMemberStatus status);
+
+
 }

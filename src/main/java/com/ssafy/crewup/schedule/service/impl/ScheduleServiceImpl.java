@@ -6,6 +6,8 @@ import com.ssafy.crewup.global.common.exception.CustomException;
 import com.ssafy.crewup.schedule.Schedule;
 import com.ssafy.crewup.schedule.ScheduleMember;
 import com.ssafy.crewup.schedule.dto.request.ScheduleCreateRequest;
+import com.ssafy.crewup.schedule.dto.request.ScheduleMemberStatusUpdateRequest;
+import com.ssafy.crewup.schedule.dto.response.ScheduleCreatorCheckResponse;
 import com.ssafy.crewup.schedule.dto.response.ScheduleGetResponse;
 import com.ssafy.crewup.schedule.dto.response.ScheduleMemberResponse;
 import com.ssafy.crewup.schedule.mapper.ScheduleMapper;
@@ -225,5 +227,73 @@ public class ScheduleServiceImpl implements ScheduleService {
         log.info("스케줄 삭제 완료: {}", deletedSchedule);
 
         log.info("=== 스케줄 삭제 완료 ===");
+    }
+
+    @Override
+    public ScheduleCreatorCheckResponse checkCreator(Long scheduleId, Long userId) {
+        log.info("생성자 확인 - scheduleId: {}, userId: {}", scheduleId, userId);
+
+        // 1. 스케줄 존재 확인
+        Schedule schedule = scheduleMapper.findById(scheduleId);
+        if (schedule == null) {
+            throw new CustomException(ErrorCode.SCHEDULE_NOT_FOUND);
+        }
+
+        // 2. 참가자 목록 조회
+        List<ScheduleMember> members = scheduleMemberMapper.findByScheduleId(scheduleId);
+
+        // 3. 생성자 찾기 (CONFIRMED 상태 중 가장 먼저 생성된 사람)
+        ScheduleMember creator = members.stream()
+                .filter(member -> member.getStatus() == ScheduleMemberStatus.CONFIRMED)
+                .min((m1, m2) -> m1.getId().compareTo(m2.getId()))
+                .orElse(null);
+
+        // 4. 생성자 여부 판단
+        boolean isCreator = creator != null && creator.getUserId().equals(userId);
+
+        log.info("생성자 확인 결과 - isCreator: {}", isCreator);
+
+        return ScheduleCreatorCheckResponse.of(isCreator);
+    }
+
+    @Override
+    @Transactional
+    public void updateMemberStatus(Long scheduleId, Long userId, ScheduleMemberStatusUpdateRequest request) {
+        log.info("멤버 상태 변경 - scheduleId: {}, userId: {}, memberId: {}, status: {}",
+                scheduleId, userId, request.getScheduleMemberId(), request.getStatus());
+
+        // 1. 스케줄 존재 확인
+        Schedule schedule = scheduleMapper.findById(scheduleId);
+        if (schedule == null) {
+            throw new CustomException(ErrorCode.SCHEDULE_NOT_FOUND);
+        }
+
+        // 2. 생성자 권한 확인
+        List<ScheduleMember> members = scheduleMemberMapper.findByScheduleId(scheduleId);
+        ScheduleMember creator = members.stream()
+                .filter(member -> member.getStatus() == ScheduleMemberStatus.CONFIRMED)
+                .min((m1, m2) -> m1.getId().compareTo(m2.getId()))
+                .orElse(null);
+
+        if (creator == null || !creator.getUserId().equals(userId)) {
+            log.warn("생성자가 아닌 사용자가 상태 변경 시도");
+            throw new CustomException(ErrorCode.NOT_SCHEDULE_CREATOR);
+        }
+
+        // 3. 변경할 멤버 확인
+        ScheduleMember targetMember = scheduleMemberMapper.findById(request.getScheduleMemberId());
+        if (targetMember == null) {
+            throw new CustomException(ErrorCode.SCHEDULE_MEMBER_NOT_FOUND);
+        }
+
+        // 4. 해당 스케줄의 멤버가 맞는지 확인
+        if (!targetMember.getScheduleId().equals(scheduleId)) {
+            throw new CustomException(ErrorCode.INVALID_SCHEDULE_MEMBER);
+        }
+
+        // 5. 상태 업데이트
+        scheduleMemberMapper.updateStatus(request.getScheduleMemberId(), request.getStatus());
+
+        log.info("멤버 상태 변경 완료");
     }
 }

@@ -5,6 +5,8 @@ import com.ssafy.crewup.global.common.code.SuccessCode;
 import com.ssafy.crewup.global.common.dto.ApiResponseBody;
 import com.ssafy.crewup.global.common.exception.CustomException;
 import com.ssafy.crewup.schedule.dto.request.ScheduleCreateRequest;
+import com.ssafy.crewup.schedule.dto.request.ScheduleMemberStatusUpdateRequest;
+import com.ssafy.crewup.schedule.dto.response.ScheduleCreatorCheckResponse;
 import com.ssafy.crewup.schedule.dto.response.ScheduleGetResponse;
 import com.ssafy.crewup.schedule.service.ScheduleService;
 import jakarta.servlet.http.HttpSession;
@@ -95,6 +97,45 @@ public class ScheduleController {
 
         return ResponseEntity.ok(
                 ApiResponseBody.onSuccess(SuccessCode.SCHEDULE_DELETE_SUCCESS)
+        );
+    }
+
+    // 생성자 확인
+    @GetMapping("/{scheduleId}/status/check")
+    public ResponseEntity<ApiResponseBody<ScheduleCreatorCheckResponse>> checkCreator(
+            @PathVariable Long scheduleId,
+            HttpSession session) {
+
+        Long userId = (Long) session.getAttribute("userId");
+
+        if (userId == null) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
+
+        ScheduleCreatorCheckResponse response = scheduleService.checkCreator(scheduleId, userId);
+
+        return ResponseEntity.ok(
+                ApiResponseBody.onSuccess(SuccessCode.SCHEDULE_CREATOR_CHECK_SUCCESS, response)
+        );
+    }
+
+    // 멤버 상태 변경
+    @PutMapping("/{scheduleId}/status")
+    public ResponseEntity<ApiResponseBody<Void>> updateMemberStatus(
+            @PathVariable Long scheduleId,
+            @Valid @RequestBody ScheduleMemberStatusUpdateRequest request,
+            HttpSession session) {
+
+        Long userId = (Long) session.getAttribute("userId");
+
+        if (userId == null) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
+
+        scheduleService.updateMemberStatus(scheduleId, userId, request);
+
+        return ResponseEntity.ok(
+                ApiResponseBody.onSuccess(SuccessCode.SCHEDULE_MEMBER_STATUS_UPDATE_SUCCESS)
         );
     }
 }

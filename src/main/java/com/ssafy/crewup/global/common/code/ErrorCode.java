@@ -17,6 +17,8 @@ public enum ErrorCode implements BaseCode {
     ALREADY_JOINED(HttpStatus.CONFLICT, "이미 참가 신청한 스케줄입니다."),
     SCHEDULE_FULL(HttpStatus.BAD_REQUEST, "스케줄 인원이 가득 찼습니다."),
     NOT_SCHEDULE_CREATOR(HttpStatus.FORBIDDEN, "스케줄 생성자만 삭제할 수 있습니다."),
+    SCHEDULE_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "참가자를 찾을 수 없습니다."),
+    INVALID_SCHEDULE_MEMBER(HttpStatus.BAD_REQUEST, "해당 스케줄의 참가자가 아닙니다."),
 
     // 회원 관련
     EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다."),
