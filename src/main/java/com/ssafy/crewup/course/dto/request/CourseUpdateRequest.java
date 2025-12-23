@@ -1,5 +1,6 @@
 package com.ssafy.crewup.course.dto.request;
 
+import com.ssafy.crewup.enums.Difficulty;
 import lombok.*;
 
 @Getter
@@ -12,5 +13,5 @@ public class CourseUpdateRequest {
     private String description;
     private Integer distance;
     private Integer expectedTime;
-    private String difficulty; // EASY, NORMAL, HARD
+    private Difficulty difficulty; // EASY, NORMAL, HARD
 }

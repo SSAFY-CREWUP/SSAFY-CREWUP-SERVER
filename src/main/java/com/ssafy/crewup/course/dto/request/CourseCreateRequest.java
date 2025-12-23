@@ -1,6 +1,7 @@
 package com.ssafy.crewup.course.dto.request;
 
 import com.ssafy.crewup.course.dto.common.PointDto;
+import com.ssafy.crewup.enums.Difficulty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,7 +22,7 @@ public class CourseCreateRequest {
 
     private Integer distance;
     private Integer expectedTime;
-    private String difficulty; // "EASY", "MEDIUM", "HARD"
+    private Difficulty difficulty;
 
     // 썸네일은 별도 MultipartFile로 받아서 URL로 변환 후,
     // 서비스 로직에서 Entity 만들 때 setThumbnail()로 넣어줄 거임.

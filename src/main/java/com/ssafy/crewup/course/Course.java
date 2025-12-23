@@ -1,5 +1,6 @@
 package com.ssafy.crewup.course;
 
+import com.ssafy.crewup.enums.Difficulty;
 import com.ssafy.crewup.global.common.code.BaseTime;
 import lombok.*;
 
@@ -20,7 +21,7 @@ public class Course extends BaseTime {
 
     private Integer distance;
     private Integer expectedTime;    // ALTER로 추가함
-    private String difficulty;       // ALTER로 추가함
+    private Difficulty difficulty; // Enum 으로 관리
 
     private Integer scrapCount;
     private String thumbnail;
