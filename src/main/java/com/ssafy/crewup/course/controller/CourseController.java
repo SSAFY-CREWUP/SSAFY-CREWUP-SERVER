@@ -88,10 +88,11 @@ public class CourseController {
     public ResponseEntity<ApiResponseBody<Void>> createReview(
             @PathVariable Long courseId,
             @RequestBody CourseReviewRequest request,
+            @RequestPart(value = "image", required = false) MultipartFile image,
             HttpSession session) {
 
         Long userId = getUserIdOrThrow(session);
-        courseService.createReview(courseId, request, userId);
+        courseService.createReview(courseId, image, request, userId);
 
         return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.REVIEW_CREATE_SUCCESS, null));
     }

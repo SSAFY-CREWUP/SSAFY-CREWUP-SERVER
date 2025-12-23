@@ -16,7 +16,6 @@ public class CourseReviewResponse {
     private String writerProfileImage;
     private String content;
     private Integer rating;
-    private String image;
     private LocalDateTime createdAt;
 
     private Boolean isMyReview;

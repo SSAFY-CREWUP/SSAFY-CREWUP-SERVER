@@ -19,7 +19,6 @@ import com.ssafy.crewup.global.common.exception.CustomException;
 import com.ssafy.crewup.global.service.S3Service;
 import com.ssafy.crewup.global.util.GeometryUtil;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,7 +27,6 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class CourseServiceImpl implements CourseService {
 
     private final CourseMapper courseMapper;
@@ -36,6 +34,7 @@ public class CourseServiceImpl implements CourseService {
     private final CourseScrapMapper  courseScrapMapper;
     private final S3Service s3Service;
     private final GeometryUtil geometryUtil;
+
     @Override
     @Transactional
     public Long createCourse(CourseCreateRequest request, MultipartFile image, Long writerId) {
@@ -43,7 +42,6 @@ public class CourseServiceImpl implements CourseService {
 
         // 1. Path 변환
         String pathWkt = geometryUtil.convertToWkt(request.getPath());
-        log.info(">>> 생성된 WKT 문자열: {}", pathWkt);
 
         // 2. MainPoint 변환
         String mainPointWkt = null;
@@ -190,14 +188,15 @@ public class CourseServiceImpl implements CourseService {
 
     // [리뷰] 등록
     @Transactional
-    public void createReview(Long courseId, CourseReviewRequest request, Long writerId) {
-        // 필요하다면 이미지 업로드 로직 추가 (request.getImage()가 MultipartFile이라면)
+    public void createReview(Long courseId, MultipartFile image, CourseReviewRequest request, Long writerId) {
+        String imageUrl = uploadImage(image, "static/course/review/" +courseId);
+
         CourseReview review = CourseReview.builder()
                 .courseId(courseId)
                 .writerId(writerId)
                 .content(request.getContent())
                 .rating(request.getRating())
-                .image(request.getImage())
+                .image(imageUrl)
                 .build();
         courseReviewMapper.insertReview(review);
     }

@@ -18,7 +18,7 @@ public interface CourseService {
 
     List<CourseListResponse> getCourseList(CourseSearchCondition condition);
 
-    void createReview(Long courseId, CourseReviewRequest request, Long writerId);
+    void createReview(Long courseId, MultipartFile image,CourseReviewRequest request, Long writerId);
 
     boolean toggleScrap(Long courseId, Long userId);
 
