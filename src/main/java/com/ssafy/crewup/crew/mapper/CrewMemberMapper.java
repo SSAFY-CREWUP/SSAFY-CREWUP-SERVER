@@ -1,6 +1,8 @@
 package com.ssafy.crewup.crew.mapper;
 
 import com.ssafy.crewup.crew.CrewMember;
+import com.ssafy.crewup.crew.dto.response.CrewMemberDetailResponse;
+
 import org.apache.ibatis.annotations.*;
 import java.util.List;
 
@@ -24,4 +26,9 @@ public interface CrewMemberMapper {
 
     @Select("SELECT id, crew_id AS crewId, user_id AS userId, role, status, applied_at AS appliedAt, joined_at AS joinedAt, updated_at AS updatedAt, created_at AS createdAt FROM crew_member WHERE user_id = #{userId}")
     List<CrewMember> findByUserId(@Param("userId") Long userId);
+
+	@Select("SELECT id, crew_id AS crewId, user_id AS userId, role, status, " +
+		"applied_at AS appliedAt, joined_at AS joinedAt " +
+		"FROM crew_member WHERE crew_id = #{crewId} AND user_id = #{userId}")
+	CrewMember findByCrewIdAndUserId(@Param("crewId") Long crewId, @Param("userId") Long userId);
 }

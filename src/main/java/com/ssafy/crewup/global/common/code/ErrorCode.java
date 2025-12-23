@@ -20,6 +20,10 @@ public enum ErrorCode implements BaseCode {
     INVALID_REGION(HttpStatus.BAD_REQUEST, "유효하지 않은 지역입니다."),
     INVALID_ACTIVITY_TIME(HttpStatus.BAD_REQUEST, "유효하지 않은 활동 시간대입니다."),
 
+	//크루 상세보기 관련
+	ALREADY_JOINED_OR_APPLIED(HttpStatus.CONFLICT, "이미 가입되었거나 신청 대기 중인 크루입니다."),
+	CREW_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 크루를 찾을 수 없습니다."),
+
     // 파일 관련
     FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다."),
 
