@@ -1,5 +1,7 @@
 package com.ssafy.crewup.schedule.service.impl;
 
+import com.ssafy.crewup.crew.Crew;
+import com.ssafy.crewup.crew.mapper.CrewMapper;
 import com.ssafy.crewup.enums.ScheduleMemberStatus;
 import com.ssafy.crewup.global.common.code.ErrorCode;
 import com.ssafy.crewup.global.common.exception.CustomException;
@@ -25,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ScheduleServiceImpl implements ScheduleService {
@@ -33,6 +34,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     private final ScheduleMapper scheduleMapper;
     private final ScheduleMemberMapper scheduleMemberMapper;
     private final UserMapper userMapper;
+    private final CrewMapper crewMapper;
 
     @Override
     public List<ScheduleGetResponse> getScheduleList(Long crewId) {
@@ -135,15 +137,15 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Transactional
     @Override
-    public Long createSchedule(ScheduleCreateRequest request, Long userId) {
+    public Long createSchedule(ScheduleCreateRequest request, Long crewId, Long userId) {
+
         // 1. 일정 데이터 생성 및 INSERT
-        Schedule schedule = request.toEntity();
+        Schedule schedule = request.toEntity(crewId);
         scheduleMapper.insert(schedule);
 
-        // 2. 방장을 참여 멤버 테이블에 참석으로
         ScheduleMember leader = ScheduleMember.builder()
-                .scheduleId(schedule.getId()) // 방금 생성된 ID 사용
-                .userId(userId)               // 생성자 ID
+                .scheduleId(schedule.getId())  // 방금 생성된 ID 사용
+                .userId(userId)                // 생성자 ID
                 .status(ScheduleMemberStatus.CONFIRMED)
                 .build();
 

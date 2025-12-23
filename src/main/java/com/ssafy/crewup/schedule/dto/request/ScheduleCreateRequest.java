@@ -5,36 +5,41 @@ import com.ssafy.crewup.enums.ScheduleType;
 import com.ssafy.crewup.schedule.Schedule;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Getter
-@Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ScheduleCreateRequest {
-    private Long id;            // schedule.schedule_id
-    private Long crewId;        // crew.crew_id
-    private Long courseId;// course.course_id
+    // crewId는 PathVariable로 받으므로 DTO에서 제거
+    private Long courseId;
+
     @NotBlank
     private String title;
+
     @NotNull
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime runDate;
+
     @NotBlank
     private String location;
+
     @NotNull
     private Integer maxPeople;
+
     @NotBlank
     private String content;
+
     @NotNull
     private ScheduleType scheduleType;
 
-    public Schedule toEntity() {
+    // crewId를 파라미터로 받아서 Entity 생성
+    public Schedule toEntity(Long crewId) {
         return Schedule.builder()
-                .crewId(this.crewId)
+                .crewId(crewId)
                 .courseId(this.courseId)
                 .title(this.title)
                 .runDate(this.runDate)
@@ -44,4 +49,5 @@ public class ScheduleCreateRequest {
                 .scheduleType(this.scheduleType)
                 .build();
     }
+
 }

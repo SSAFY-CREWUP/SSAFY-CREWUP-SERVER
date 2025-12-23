@@ -48,16 +48,20 @@ public class ScheduleController {
         );
     }
 
+    // 일정 생성
     @PostMapping("/{crewId}/create")
     public ResponseEntity<ApiResponseBody<Void>> createSchedule(
             @PathVariable Long crewId,
             @Valid @RequestBody ScheduleCreateRequest request,
             HttpSession session) {
 
-        Long userId = (Long) session.getAttribute("userId"); // 세션에서 유저 ID 추출
+        Long userId = (Long) session.getAttribute("userId");
 
-        request.setCrewId(crewId);
-        scheduleService.createSchedule(request, userId); // userId 함께 전달
+        if (userId == null) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
+
+        scheduleService.createSchedule(request, crewId, userId);
 
         return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.SCHEDULE_CREATE_SUCCESS));
     }
