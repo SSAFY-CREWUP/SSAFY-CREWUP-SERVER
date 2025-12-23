@@ -20,8 +20,21 @@ public enum SuccessCode implements BaseCode {
     LOGOUT_SUCCESS(HttpStatus.OK, "로그아웃이 완료되었습니다."),
 	// 공통
 	OK(HttpStatus.OK, "요청이 성공했습니다."),
-	CREATED(HttpStatus.CREATED, "생성에 성공했습니다.")
+	CREATED(HttpStatus.CREATED, "생성에 성공했습니다."),
 
+
+    // Course
+    COURSE_CREATE_SUCCESS(HttpStatus.CREATED, "코스 등록에 성공했습니다."),
+    COURSE_READ_SUCCESS(HttpStatus.OK, "코스 상세 조회에 성공했습니다."),
+    COURSE_LIST_SUCCESS(HttpStatus.OK, "코스 목록 조회에 성공했습니다."),
+    COURSE_UPDATE_SUCCESS(HttpStatus.OK, "코스 수정에 성공했습니다."),
+    COURSE_SCRAP_SUCCESS(HttpStatus.OK, "코스 스크랩 설정/해제에 성공했습니다."),
+    COURSE_DELETE_SUCCESS(HttpStatus.OK, "코스 삭제에 성공했습니다."),
+
+    // Course Review
+    REVIEW_CREATE_SUCCESS(HttpStatus.CREATED, "리뷰 등록에 성공했습니다."),
+    REVIEW_READ_SUCCESS(HttpStatus.OK, "리뷰 조회에 성공했습니다."),
+    REVIEW_DELETE_SUCCESS(HttpStatus.OK, "리뷰 삭제에 성공했습니다.")
 	;
 
 	private final HttpStatus httpStatus;
