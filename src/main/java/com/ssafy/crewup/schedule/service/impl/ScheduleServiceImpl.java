@@ -193,13 +193,10 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Override
     @Transactional
     public void deleteSchedule(Long scheduleId, Long userId) {
-        log.info("=== 스케줄 삭제 시작 ===");
-        log.info("scheduleId: {}, userId: {}", scheduleId, userId);
 
         // 1. 스케줄 존재 확인
         Schedule schedule = scheduleMapper.findById(scheduleId);
         if (schedule == null) {
-            log.warn("스케줄을 찾을 수 없음");
             throw new CustomException(ErrorCode.SCHEDULE_NOT_FOUND);
         }
 
@@ -213,26 +210,18 @@ public class ScheduleServiceImpl implements ScheduleService {
                 .orElse(null);
 
         if (creator == null || !creator.getUserId().equals(userId)) {
-            log.warn("생성자가 아닌 사용자가 삭제 시도 - 요청 userId: {}, 생성자 userId: {}",
-                    userId, creator != null ? creator.getUserId() : "null");
             throw new CustomException(ErrorCode.NOT_SCHEDULE_CREATOR);
         }
 
         // 3. 연관된 schedule_member 먼저 삭제 (FK 제약조건)
         int deletedMembers = scheduleMemberMapper.deleteByScheduleId(scheduleId);
-        log.info("삭제된 참가자 수: {}", deletedMembers);
 
         // 4. 스케줄 삭제
         int deletedSchedule = scheduleMapper.delete(scheduleId);
-        log.info("스케줄 삭제 완료: {}", deletedSchedule);
-
-        log.info("=== 스케줄 삭제 완료 ===");
     }
 
     @Override
     public ScheduleCreatorCheckResponse checkCreator(Long scheduleId, Long userId) {
-        log.info("생성자 확인 - scheduleId: {}, userId: {}", scheduleId, userId);
-
         // 1. 스케줄 존재 확인
         Schedule schedule = scheduleMapper.findById(scheduleId);
         if (schedule == null) {
@@ -251,16 +240,12 @@ public class ScheduleServiceImpl implements ScheduleService {
         // 4. 생성자 여부 판단
         boolean isCreator = creator != null && creator.getUserId().equals(userId);
 
-        log.info("생성자 확인 결과 - isCreator: {}", isCreator);
-
         return ScheduleCreatorCheckResponse.of(isCreator);
     }
 
     @Override
     @Transactional
     public void updateMemberStatus(Long scheduleId, Long userId, ScheduleMemberStatusUpdateRequest request) {
-        log.info("멤버 상태 변경 - scheduleId: {}, userId: {}, memberId: {}, status: {}",
-                scheduleId, userId, request.getScheduleMemberId(), request.getStatus());
 
         // 1. 스케줄 존재 확인
         Schedule schedule = scheduleMapper.findById(scheduleId);
@@ -276,7 +261,6 @@ public class ScheduleServiceImpl implements ScheduleService {
                 .orElse(null);
 
         if (creator == null || !creator.getUserId().equals(userId)) {
-            log.warn("생성자가 아닌 사용자가 상태 변경 시도");
             throw new CustomException(ErrorCode.NOT_SCHEDULE_CREATOR);
         }
 
@@ -293,7 +277,6 @@ public class ScheduleServiceImpl implements ScheduleService {
 
         // 5. 상태 업데이트
         scheduleMemberMapper.updateStatus(request.getScheduleMemberId(), request.getStatus());
-
-        log.info("멤버 상태 변경 완료");
+        
     }
 }

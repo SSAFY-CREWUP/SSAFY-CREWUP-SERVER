@@ -29,22 +29,6 @@ public class ScheduleGetResponse {
     private Integer currentPeople;  // 현재 참가 인원 목록 리스트의 크기
     private List<ScheduleMemberResponse> members;  // 참가자 목록
 
-//    public static ScheduleGetResponse from(Schedule schedule) {
-//        return ScheduleGetResponse.builder()
-//                .scheduleId(schedule.getId())
-//                .crewId(schedule.getCrewId())
-//                .courseId(schedule.getCourseId())
-//                .title(schedule.getTitle())
-//                .runDate(schedule.getRunDate())
-//                .location(schedule.getLocation())
-//                .maxPeople(schedule.getMaxPeople())
-//                .content(schedule.getContent())
-//                .scheduleType(schedule.getScheduleType())
-//                .createdAt(schedule.getCreatedAt())
-//                .updatedAt(schedule.getUpdatedAt())
-//                .build();
-//    }
-
     public static ScheduleGetResponse from(Schedule schedule, List<ScheduleMemberResponse> members) {
         return ScheduleGetResponse.builder()
                 .scheduleId(schedule.getId())

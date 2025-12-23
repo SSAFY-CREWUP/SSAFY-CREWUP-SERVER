@@ -36,5 +36,4 @@ public interface ScheduleMapper {
     @Delete("DELETE FROM schedule WHERE schedule_id = #{scheduleId}")
     int delete(@Param("scheduleId") Long scheduleId);
 
-
 }

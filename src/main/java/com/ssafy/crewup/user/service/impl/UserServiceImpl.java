@@ -80,4 +80,3 @@ public class UserServiceImpl implements UserService {
         log.info("추가 정보 등록 완료 - userId: {}", userId);
     }
 }
-
