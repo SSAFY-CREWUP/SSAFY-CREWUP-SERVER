@@ -148,7 +148,7 @@ public class UserController {
     }
 
     // 비밀번호 변경
-    @PutMapping("/password")
+    @PutMapping("/edit/password")
     public ResponseEntity<ApiResponseBody<Void>> updatePassword(
             @Valid @RequestBody PasswordUpdateRequest request,
             HttpSession session) {
