@@ -12,7 +12,6 @@ import com.ssafy.crewup.global.common.dto.ApiResponseBody;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
 	@ExceptionHandler(CustomException.class)
 	public ResponseEntity<ApiResponseBody<Void>> handleGeneralException(CustomException e) {
 		return ResponseEntity

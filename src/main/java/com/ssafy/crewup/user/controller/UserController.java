@@ -39,8 +39,11 @@ public class UserController {
             @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
             HttpSession session) {
 
-        // 1. 프로필 이미지 S3 업로드
-        String profileImageUrl = s3Service.uploadFile(profileImage, "profiles");
+        // 1. 프로필 이미지 S3 업로드 (파일이 있을 때만)
+        String profileImageUrl = null;
+        if (profileImage != null && !profileImage.isEmpty()) {
+            profileImageUrl = s3Service.uploadFile(profileImage, "profiles");
+        }
 
         // 2. 회원가입
         Long userId = userService.signup(request, profileImageUrl);
