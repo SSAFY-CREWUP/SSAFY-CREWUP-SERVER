@@ -34,7 +34,7 @@ public class CourseServiceImpl implements CourseService {
     private final CourseMapper courseMapper;
     private final CourseReviewMapper courseReviewMapper;
     private final CourseScrapMapper  courseScrapMapper;
-    private final S3Service S3Service;
+    private final S3Service s3Service;
     private final GeometryUtil geometryUtil;
     @Override
     @Transactional
@@ -224,6 +224,6 @@ public class CourseServiceImpl implements CourseService {
     // 이미지 업로드 헬퍼 메서드
     private String uploadImage(MultipartFile image, String dir) {
         if (image == null || image.isEmpty()) return null;
-        return S3Service.uploadFile(image, dir);
+        return s3Service.uploadFile(image, dir);
     }
 }

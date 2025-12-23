@@ -1,7 +1,6 @@
 package com.ssafy.crewup.course.mapper;
 
 import com.ssafy.crewup.course.Course;
-import com.ssafy.crewup.course.CourseReview;
 import com.ssafy.crewup.course.dto.request.CourseSearchCondition;
 import com.ssafy.crewup.course.dto.request.CourseUpdateRequest;
 import com.ssafy.crewup.course.dto.response.CourseGetResponse;
@@ -32,14 +31,14 @@ public interface CourseMapper {
     // 5. 코스 조회수 증가
     void increaseViewCount(@Param("courseId") Long courseId);
 
-    // 6. 내 코스 조회 (수정: courseId -> userId, @Param 추가)
+    // 6. 내 코스 조회
     List<CourseListResponse> selectMyCourses(
             @Param("userId") Long userId,
             @Param("offset") int offset,
             @Param("size") int size
     );
 
-    // 7. 코스 수정 (@Param 추가)
+    // 7. 코스 수정
     void updateCourse(
             @Param("courseId") Long courseId,
             @Param("req") CourseUpdateRequest request,

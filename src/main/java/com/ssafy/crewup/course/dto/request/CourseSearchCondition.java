@@ -1,5 +1,6 @@
 package com.ssafy.crewup.course.dto.request;
 
+import com.ssafy.crewup.enums.Difficulty;
 import lombok.*;
 
 @Getter
@@ -9,7 +10,7 @@ import lombok.*;
 @Builder
 public class CourseSearchCondition {
     private String keyword;
-    private String difficulty;
+    private Difficulty difficulty;
 
     private Double lat;
     private Double lng;

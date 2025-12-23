@@ -19,6 +19,5 @@ public class CourseReviewResponse {
     private String image;
     private LocalDateTime createdAt;
 
-    // 내 리뷰인지 여부 (프론트에서 삭제 버튼 보여줄 때 필요)
     private Boolean isMyReview;
 }

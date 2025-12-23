@@ -12,19 +12,14 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 public interface CourseService {
-    // 1. 코스 등록
     Long createCourse(CourseCreateRequest request, MultipartFile image, Long writerId);
 
-    // 2. 코스 상세 조회
     CourseGetResponse getCourseDetail(Long courseId, Long userId);
 
-    // 3. 코스 목록 검색
     List<CourseListResponse> getCourseList(CourseSearchCondition condition);
 
-    // 4. 리뷰 등록
     void createReview(Long courseId, CourseReviewRequest request, Long writerId);
 
-    // 5. 스크랩 토글
     boolean toggleScrap(Long courseId, Long userId);
 
     List<CourseReviewResponse> getReviewList(Long courseId, int page, int size, Long userId);

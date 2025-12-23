@@ -1,9 +1,10 @@
 package com.ssafy.crewup.course.dto.response;
 
+import com.ssafy.crewup.enums.Difficulty;
 import lombok.*;
 
 @Getter
-@Setter // MyBatis ResultMap에서 setter 쓸 수도 있으니 열어둠
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -13,7 +14,7 @@ public class CourseListResponse {
     private String thumbnail;       // 썸네일 이미지 URL
     private Integer distance;       // m 단위
     private Integer expectedTime;   // 분 단위
-    private String difficulty;      // EASY, NORMAL, HARD
+    private Difficulty difficulty;      // EASY, NORMAL, HARD
     private Integer scrapCount;     // 스크랩 수
     private Double currentDistance;  // current_distance
 

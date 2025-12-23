@@ -2,6 +2,7 @@ package com.ssafy.crewup.course.dto.response;
 
 import com.ssafy.crewup.course.dto.common.PointDto;
 import com.ssafy.crewup.course.dto.common.WriterDto;
+import com.ssafy.crewup.enums.Difficulty;
 import lombok.*;
 
 import java.util.List;
@@ -21,7 +22,7 @@ public class CourseGetResponse {
 
     private Integer distance;
     private Integer expectedTime;
-    private String difficulty;
+    private Difficulty difficulty;
     private Integer scrapCount;
     private String thumbnail;
     private String aiSummary;
