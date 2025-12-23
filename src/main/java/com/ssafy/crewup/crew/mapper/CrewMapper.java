@@ -1,5 +1,7 @@
 package com.ssafy.crewup.crew.mapper;
 
+import java.util.List;
+
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Options;
@@ -9,6 +11,8 @@ import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.Select;
 
 import com.ssafy.crewup.crew.Crew;
+import com.ssafy.crewup.crew.dto.request.CrewSearchRequest;
+import com.ssafy.crewup.crew.dto.response.CrewListResponse;
 
 @Mapper
 public interface CrewMapper {
@@ -28,4 +32,6 @@ public interface CrewMapper {
 			typeHandler = com.ssafy.crewup.global.config.StringListTypeHandler.class)
 	})
 	Crew findById(@Param("id") Long id);
+
+	List<CrewListResponse> searchCrews(CrewSearchRequest request);
 }
