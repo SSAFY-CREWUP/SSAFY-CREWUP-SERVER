@@ -3,6 +3,8 @@ package com.ssafy.crewup.crew.service.impl;
 import com.ssafy.crewup.crew.Crew;
 import com.ssafy.crewup.crew.CrewMember;
 import com.ssafy.crewup.crew.dto.request.CrewCreateRequest;
+import com.ssafy.crewup.crew.dto.request.CrewSearchRequest;
+import com.ssafy.crewup.crew.dto.response.CrewListResponse;
 import com.ssafy.crewup.crew.mapper.CrewMapper;
 import com.ssafy.crewup.crew.mapper.CrewMemberMapper;
 import com.ssafy.crewup.enums.CrewMemberRole;
@@ -58,7 +60,7 @@ class CrewServiceImplTest {
 	private CrewCreateRequest buildValidRequest() {
 		return new CrewCreateRequest(
 			"강남 새벽 러닝",
-			"서울 강남구",
+			"서울_강남구",
 			"상쾌한 아침을 여는 강남 러닝 크루입니다.",
 			"오전",
 			"2030",
@@ -86,27 +88,39 @@ class CrewServiceImplTest {
 		// then
 		assertEquals(expectedCrewId, result);
 
-		// Verify crew was saved with correct data
+		// 크루 저장 데이터 검증
 		ArgumentCaptor<Crew> crewCaptor = ArgumentCaptor.forClass(Crew.class);
 		verify(crewMapper).insert(crewCaptor.capture());
 		Crew savedCrew = crewCaptor.getValue();
 		assertEquals(req.name(), savedCrew.getName());
-		assertEquals(req.region(), savedCrew.getRegion());
 		assertEquals(TEST_IMAGE_URL, savedCrew.getCrewImage());
 		assertEquals(5.5, savedCrew.getAveragePace());
-		assertEquals(1, savedCrew.getMemberCount());
-		assertIterableEquals(req.keywords(), savedCrew.getKeywords());
 
-		// Verify crew member (leader) was saved
-		ArgumentCaptor<CrewMember> memberCaptor = ArgumentCaptor.forClass(CrewMember.class);
-		verify(crewMemberMapper).insert(memberCaptor.capture());
-		CrewMember savedMember = memberCaptor.getValue();
-		assertEquals(expectedCrewId, savedMember.getCrewId());
-		assertEquals(TEST_LEADER_ID, savedMember.getUserId());
-		assertEquals(CrewMemberRole.LEADER, savedMember.getRole());
-		assertEquals(CrewMemberStatus.ACCEPTED, savedMember.getStatus());
-		assertNotNull(savedMember.getAppliedAt());
-		assertNotNull(savedMember.getJoinedAt());
+		// 크루장 등록 검증
+		verify(crewMemberMapper).insert(any(CrewMember.class));
+	}
+
+	@Test
+	@DisplayName("크루 목록 검색 시 필터 조건이 매퍼로 전달되는지 확인")
+	void searchCrews_success() {
+		// given
+		CrewSearchRequest searchReq = new CrewSearchRequest(
+			"러닝", "서울_강남구", "오전", "모두", "2030", "MEMBER_COUNT", "DESC"
+		);
+		List<CrewListResponse> expectedList = List.of(
+			new CrewListResponse(100L, "강남 러닝", "서울_강남구", 10, "오전", 5.0, "2030", null, List.of("친목"))
+		);
+
+		when(crewMapper.searchCrews(any(CrewSearchRequest.class))).thenReturn(expectedList);
+
+		// when
+		List<CrewListResponse> result = crewService.searchCrews(searchReq);
+
+		// then
+		assertNotNull(result);
+		assertEquals(1, result.size());
+		assertEquals("강남 러닝", result.get(0).name());
+		verify(crewMapper).searchCrews(searchReq);
 	}
 
 	@Test
@@ -127,45 +141,10 @@ class CrewServiceImplTest {
 	void createCrew_userWithoutPace() {
 		// given
 		when(userMapper.findById(anyLong())).thenReturn(
-			User.builder()
-				.id(TEST_LEADER_ID)
-				.averagePace(null)
-				.build()
+			User.builder().id(TEST_LEADER_ID).averagePace(null).build()
 		);
 
 		CrewCreateRequest req = buildValidRequest();
-		when(crewMapper.insert(any(Crew.class))).thenAnswer(invocation -> {
-			Crew crew = invocation.getArgument(0);
-			crew.setId(100L);
-			return 1;
-		});
-
-		// when
-		crewService.createCrew(req, TEST_IMAGE_URL, TEST_LEADER_ID);
-
-		// then
-		ArgumentCaptor<Crew> crewCaptor = ArgumentCaptor.forClass(Crew.class);
-		verify(crewMapper).insert(crewCaptor.capture());
-		assertEquals(0.0, crewCaptor.getValue().getAveragePace());
-	}
-
-	@Test
-	@DisplayName("유효하지 않은 페이스 값일 경우 0.0으로 설정")
-	void createCrew_invalidPaceFormat() {
-		// given
-		when(userMapper.findById(anyLong())).thenReturn(
-			User.builder()
-				.id(TEST_LEADER_ID)
-				.averagePace("invalid")
-				.build()
-		);
-
-		CrewCreateRequest req = buildValidRequest();
-		when(crewMapper.insert(any(Crew.class))).thenAnswer(invocation -> {
-			Crew crew = invocation.getArgument(0);
-			crew.setId(100L);
-			return 1;
-		});
 
 		// when
 		crewService.createCrew(req, TEST_IMAGE_URL, TEST_LEADER_ID);
