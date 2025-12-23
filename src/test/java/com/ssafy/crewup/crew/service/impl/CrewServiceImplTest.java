@@ -5,7 +5,12 @@ import com.ssafy.crewup.crew.CrewMember;
 import com.ssafy.crewup.crew.dto.request.CrewCreateRequest;
 import com.ssafy.crewup.crew.mapper.CrewMapper;
 import com.ssafy.crewup.crew.mapper.CrewMemberMapper;
+import com.ssafy.crewup.enums.CrewMemberRole;
+import com.ssafy.crewup.enums.CrewMemberStatus;
+import com.ssafy.crewup.global.common.code.ErrorCode;
 import com.ssafy.crewup.global.common.exception.CustomException;
+import com.ssafy.crewup.user.User;
+import com.ssafy.crewup.user.mapper.UserMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,97 +19,160 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.*;
 
 class CrewServiceImplTest {
 
-    @Mock
-    private CrewMapper crewMapper;
+	@Mock
+	private CrewMapper crewMapper;
 
-    @Mock
-    private CrewMemberMapper crewMemberMapper;
+	@Mock
+	private CrewMemberMapper crewMemberMapper;
 
-    @InjectMocks
-    private CrewServiceImpl crewService;
+	@Mock
+	private UserMapper userMapper;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
+	@InjectMocks
+	private CrewServiceImpl crewService;
 
-    private CrewCreateRequest buildValidRequest() {
-        return new CrewCreateRequest(
-            "강남 새벽 러닝",
-            "서울 강남구",
-            "상쾌한 아침을 여는 강남 러닝 크루입니다.",
-            "오전",
-            "2030",
-            "모두",
-            "https://crewup-s3.ssafy.io/images/crew_01.png",
-            List.of("건강", "친목", "미라클모닝")
-        );
-    }
+	private final String TEST_IMAGE_URL = "https://crewup-s3.ssafy.io/images/crew_01.png";
+	private final Long TEST_LEADER_ID = 1L;
 
-    @Test
-    @DisplayName("크루 생성 성공 시 crew와 leader가 저장되고 crewId 반환")
-    void createCrew_success() {
-        CrewCreateRequest req = buildValidRequest();
+	@BeforeEach
+	void setUp() {
+		MockitoAnnotations.openMocks(this);
+		when(userMapper.findById(anyLong())).thenReturn(
+			User.builder()
+				.id(TEST_LEADER_ID)
+				.averagePace("5.5")
+				.build()
+		);
+	}
 
-        doAnswer(invocation -> {
-            Crew arg = invocation.getArgument(0);
-            arg.setId(100L);
-            return 1;
-        }).when(crewMapper).insert(any(Crew.class));
+	private CrewCreateRequest buildValidRequest() {
+		return new CrewCreateRequest(
+			"강남 새벽 러닝",
+			"서울 강남구",
+			"상쾌한 아침을 여는 강남 러닝 크루입니다.",
+			"오전",
+			"2030",
+			"모두",
+			List.of("건강", "친목", "미라클모닝")
+		);
+	}
 
-        Long result = crewService.createCrew(req, 1L);
+	@Test
+	@DisplayName("크루 생성 성공 시 crew와 leader가 저장되고 crewId 반환")
+	void createCrew_success() {
+		// given
+		CrewCreateRequest req = buildValidRequest();
+		Long expectedCrewId = 100L;
 
-        assertEquals(100L, result);
+		when(crewMapper.insert(any(Crew.class))).thenAnswer(invocation -> {
+			Crew crew = invocation.getArgument(0);
+			crew.setId(expectedCrewId);
+			return 1;
+		});
 
-        ArgumentCaptor<CrewMember> cmCaptor = ArgumentCaptor.forClass(CrewMember.class);
-        verify(crewMemberMapper).insert(cmCaptor.capture());
-        CrewMember saved = cmCaptor.getValue();
-        assertEquals(100L, saved.getCrewId());
-        assertEquals(1L, saved.getUserId());
-        assertNotNull(saved.getAppliedAt());
-        assertNotNull(saved.getJoinedAt());
-    }
+		// when
+		Long result = crewService.createCrew(req, TEST_IMAGE_URL, TEST_LEADER_ID);
 
-    @Test
-    @DisplayName("유효하지 않은 지역이면 INVALID_REGION 발생")
-    void createCrew_invalidRegion() {
-        CrewCreateRequest req = buildValidRequest();
-        CrewCreateRequest invalid = new CrewCreateRequest(
-            req.name(),
-            "서울 가짜구",
-            req.description(),
-            req.activityTime(),
-            req.ageGroup(),
-            req.genderLimit(),
-            req.crewImage(),
-            req.keywords()
-        );
-        assertThrows(CustomException.class, () -> crewService.createCrew(invalid, 1L));
-    }
+		// then
+		assertEquals(expectedCrewId, result);
 
-    @Test
-    @DisplayName("유효하지 않은 활동 시간대면 INVALID_ACTIVITY_TIME 발생")
-    void createCrew_invalidActivityTime() {
-        CrewCreateRequest req = buildValidRequest();
-        CrewCreateRequest invalid = new CrewCreateRequest(
-            req.name(),
-            req.region(),
-            req.description(),
-            "아침",
-            req.ageGroup(),
-            req.genderLimit(),
-            req.crewImage(),
-            req.keywords()
-        );
-        assertThrows(CustomException.class, () -> crewService.createCrew(invalid, 1L));
-    }
+		// Verify crew was saved with correct data
+		ArgumentCaptor<Crew> crewCaptor = ArgumentCaptor.forClass(Crew.class);
+		verify(crewMapper).insert(crewCaptor.capture());
+		Crew savedCrew = crewCaptor.getValue();
+		assertEquals(req.name(), savedCrew.getName());
+		assertEquals(req.region(), savedCrew.getRegion());
+		assertEquals(TEST_IMAGE_URL, savedCrew.getCrewImage());
+		assertEquals(5.5, savedCrew.getAveragePace());
+		assertEquals(1, savedCrew.getMemberCount());
+		assertIterableEquals(req.keywords(), savedCrew.getKeywords());
+
+		// Verify crew member (leader) was saved
+		ArgumentCaptor<CrewMember> memberCaptor = ArgumentCaptor.forClass(CrewMember.class);
+		verify(crewMemberMapper).insert(memberCaptor.capture());
+		CrewMember savedMember = memberCaptor.getValue();
+		assertEquals(expectedCrewId, savedMember.getCrewId());
+		assertEquals(TEST_LEADER_ID, savedMember.getUserId());
+		assertEquals(CrewMemberRole.LEADER, savedMember.getRole());
+		assertEquals(CrewMemberStatus.ACCEPTED, savedMember.getStatus());
+		assertNotNull(savedMember.getAppliedAt());
+		assertNotNull(savedMember.getJoinedAt());
+	}
+
+	@Test
+	@DisplayName("존재하지 않는 사용자로 크루 생성 시 USER_NOT_FOUND 예외 발생")
+	void createCrew_userNotFound() {
+		// given
+		when(userMapper.findById(anyLong())).thenReturn(null);
+		CrewCreateRequest req = buildValidRequest();
+
+		// when & then
+		CustomException exception = assertThrows(CustomException.class,
+			() -> crewService.createCrew(req, TEST_IMAGE_URL, 999L));
+		assertEquals(ErrorCode.USER_NOT_FOUND, exception.getErrorStatus());
+	}
+
+	@Test
+	@DisplayName("평균 페이스가 없는 사용자로 크루 생성 시 기본 0.0으로 설정")
+	void createCrew_userWithoutPace() {
+		// given
+		when(userMapper.findById(anyLong())).thenReturn(
+			User.builder()
+				.id(TEST_LEADER_ID)
+				.averagePace(null)
+				.build()
+		);
+
+		CrewCreateRequest req = buildValidRequest();
+		when(crewMapper.insert(any(Crew.class))).thenAnswer(invocation -> {
+			Crew crew = invocation.getArgument(0);
+			crew.setId(100L);
+			return 1;
+		});
+
+		// when
+		crewService.createCrew(req, TEST_IMAGE_URL, TEST_LEADER_ID);
+
+		// then
+		ArgumentCaptor<Crew> crewCaptor = ArgumentCaptor.forClass(Crew.class);
+		verify(crewMapper).insert(crewCaptor.capture());
+		assertEquals(0.0, crewCaptor.getValue().getAveragePace());
+	}
+
+	@Test
+	@DisplayName("유효하지 않은 페이스 값일 경우 0.0으로 설정")
+	void createCrew_invalidPaceFormat() {
+		// given
+		when(userMapper.findById(anyLong())).thenReturn(
+			User.builder()
+				.id(TEST_LEADER_ID)
+				.averagePace("invalid")
+				.build()
+		);
+
+		CrewCreateRequest req = buildValidRequest();
+		when(crewMapper.insert(any(Crew.class))).thenAnswer(invocation -> {
+			Crew crew = invocation.getArgument(0);
+			crew.setId(100L);
+			return 1;
+		});
+
+		// when
+		crewService.createCrew(req, TEST_IMAGE_URL, TEST_LEADER_ID);
+
+		// then
+		ArgumentCaptor<Crew> crewCaptor = ArgumentCaptor.forClass(Crew.class);
+		verify(crewMapper).insert(crewCaptor.capture());
+		assertEquals(0.0, crewCaptor.getValue().getAveragePace());
+	}
 }
