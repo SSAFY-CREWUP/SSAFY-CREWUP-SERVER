@@ -8,11 +8,9 @@ import com.ssafy.crewup.user.dto.response.UserResponse;
 import com.ssafy.crewup.user.mapper.UserMapper;
 import com.ssafy.crewup.user.service.UserService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -59,7 +57,6 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void updateAdditionalInfo(Long userId, UserAdditionalInfoRequest request) {
-        log.info("추가 정보 등록 시작 - userId: {}", userId);
 
         // 1. 사용자 존재 확인
         User user = userMapper.findById(userId);
@@ -75,12 +72,9 @@ public class UserServiceImpl implements UserService {
 
         // 3. DB 업데이트
         userMapper.updateAdditionalInfo(user);
-
-        log.info("추가 정보 등록 완료 - userId: {}", userId);
     }
     @Override
     public UserResponse getUserInfo(Long userId) {
-        log.info("사용자 정보 조회 - userId: {}", userId);
 
         User user = userMapper.findById(userId);
         if (user == null) {
@@ -93,7 +87,6 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void updateUserInfo(Long userId, UserUpdateRequest request, String profileImageUrl) {
-        log.info("사용자 전체 정보 수정 시작 - userId: {}", userId);
 
         // 1. 사용자 조회
         User user = userMapper.findById(userId);
@@ -124,14 +117,11 @@ public class UserServiceImpl implements UserService {
         // 4. DB 업데이트 (기본 정보 + 추가 정보 모두)
         userMapper.update(user);
         userMapper.updateAdditionalInfo(user);
-
-        log.info("사용자 전체 정보 수정 완료 - userId: {}", userId);
     }
 
     @Override
     @Transactional
     public void updatePassword(Long userId, PasswordUpdateRequest request) {
-        log.info("비밀번호 변경 시작 - userId: {}", userId);
 
         // 1. 사용자 조회
         User user = userMapper.findById(userId);
@@ -149,8 +139,6 @@ public class UserServiceImpl implements UserService {
 
         // 4. DB 업데이트
         userMapper.update(user);
-
-        log.info("비밀번호 변경 완료 - userId: {}", userId);
     }
 }
 
