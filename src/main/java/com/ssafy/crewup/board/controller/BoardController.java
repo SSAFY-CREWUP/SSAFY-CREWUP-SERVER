@@ -19,8 +19,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-// 🔥 URL 변경: 크루 하위 리소스로 이동
-@RequestMapping("/api/v1/crews/{crewId}/boards")
+@RequestMapping("/api/v1/crew/{crewId}/boards")
 @RequiredArgsConstructor
 public class BoardController {
 
@@ -36,7 +35,7 @@ public class BoardController {
     // ==================== [게시글 API] ====================
 
     // 1. 메인 홈 미리보기
-    // GET /api/v1/crews/{crewId}/boards/home
+    // GET /api/v1/crew/{crewId}/boards/home
     @GetMapping("/home")
     public ResponseEntity<ApiResponseBody<BoardHomeResponse>> getHomeBoards(
             @PathVariable Long crewId,
@@ -48,7 +47,7 @@ public class BoardController {
     }
 
     // 2. 게시글 목록 조회
-    // GET /api/v1/crews/{crewId}/boards
+    // GET /api/v1/crew/{crewId}/boards
     @GetMapping
     public ResponseEntity<ApiResponseBody<List<BoardListResponse>>> getBoardList(
             @PathVariable Long crewId,
@@ -76,7 +75,7 @@ public class BoardController {
     }
 
     // 4. 게시글 작성
-    // POST /api/v1/crews/{crewId}/boards
+    // POST /api/v1/crew/{crewId}/boards
     @PostMapping
     public ResponseEntity<ApiResponseBody<Long>> createBoard(
             @PathVariable Long crewId,
@@ -90,7 +89,7 @@ public class BoardController {
     }
 
     // 5. 게시글 수정
-    // PUT /api/v1/crews/{crewId}/boards/{boardId}
+    // PUT /api/v1/crew/{crewId}/boards/{boardId}
     @PutMapping("/{boardId}")
     public ResponseEntity<ApiResponseBody<Void>> updateBoard(
             @PathVariable Long crewId,
@@ -104,7 +103,7 @@ public class BoardController {
     }
 
     // 6. 게시글 삭제
-    // DELETE /api/v1/crews/{crewId}/boards/{boardId}
+    // DELETE /api/v1/crew/{crewId}/boards/{boardId}
     @DeleteMapping("/{boardId}")
     public ResponseEntity<ApiResponseBody<Void>> deleteBoard(
             @PathVariable Long crewId,
@@ -119,7 +118,7 @@ public class BoardController {
     // ==================== [댓글 API] ====================
 
     // 7. 댓글 목록 조회
-    // GET /api/v1/crews/{crewId}/boards/{boardId}/comments
+    // GET /api/v1/crew/{crewId}/boards/{boardId}/comments
     @GetMapping("/{boardId}/comments")
     public ResponseEntity<ApiResponseBody<List<CommentResponse>>> getCommentList(
             @PathVariable Long crewId,
@@ -134,7 +133,7 @@ public class BoardController {
     }
 
     // 8. 댓글 작성
-    // POST /api/v1/crews/{crewId}/boards/{boardId}/comments
+    // POST /api/v1/crew/{crewId}/boards/{boardId}/comments
     @PostMapping("/{boardId}/comments")
     public ResponseEntity<ApiResponseBody<Void>> createComment(
             @PathVariable Long crewId,
@@ -148,7 +147,7 @@ public class BoardController {
     }
 
     // 9. 댓글 수정
-    // PUT /api/v1/crews/{crewId}/boards/comments/{commentId}
+    // PUT /api/v1/crew/{crewId}/boards/comments/{commentId}
     @PutMapping("/comments/{commentId}")
     public ResponseEntity<ApiResponseBody<Void>> updateComment(
             @PathVariable Long crewId,
@@ -162,7 +161,7 @@ public class BoardController {
     }
 
     // 10. 댓글 삭제
-    // DELETE /api/v1/crews/{crewId}/boards/comments/{commentId}
+    // DELETE /api/v1/crew/{crewId}/boards/comments/{commentId}
     @DeleteMapping("/comments/{commentId}")
     public ResponseEntity<ApiResponseBody<Void>> deleteComment(
             @PathVariable Long crewId,
