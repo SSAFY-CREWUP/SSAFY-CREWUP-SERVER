@@ -21,4 +21,11 @@ public interface VoteOptionMapper {
 
     @Select("SELECT option_id AS id, vote_id AS voteId, content, count, created_at AS createdAt, updated_at AS updatedAt FROM vote_option WHERE vote_id = #{voteId}")
     List<VoteOption> findByVoteId(@Param("voteId") Long voteId);
+
+	@Select("SELECT * FROM vote_option WHERE option_id = #{id} FOR UPDATE")
+	VoteOption findByIdWithLock(Long id);
+
+	@Update("UPDATE vote_option SET count = count + 1 WHERE option_id = #{id}")
+	void incrementCount(Long id);
+
 }
