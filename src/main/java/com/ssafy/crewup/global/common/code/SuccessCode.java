@@ -11,6 +11,13 @@ public enum SuccessCode implements BaseCode {
 
 	//TODO : 핵심 기능 or 도메인 별로 에러를 분류해주세요! ex. 검색, 필터링, 회원가입/로그인, 등등..
 
+    // 알림 관련 성공
+    NOTIFICATION_LIST_SUCCESS(HttpStatus.OK, "알림 목록 조회 성공"),
+    NOTIFICATION_UNREAD_COUNT_SUCCESS(HttpStatus.OK, "안읽은 알림 개수 조회 성공"),
+    NOTIFICATION_READ_SUCCESS(HttpStatus.OK, "알림 읽음 처리 성공"),
+    NOTIFICATION_READ_ALL_SUCCESS(HttpStatus.OK, "모든 알림 읽음 처리 성공"),
+    NOTIFICATION_DELETE_SUCCESS(HttpStatus.OK, "알림 삭제 성공"),
+
     // 스케줄 관련
     SCHEDULE_LIST_SUCCESS(HttpStatus.OK, "스케줄 목록 조회에 성공했습니다."),
     SCHEDULE_DETAIL_SUCCESS(HttpStatus.OK, "스케줄 상세 조회에 성공했습니다."),

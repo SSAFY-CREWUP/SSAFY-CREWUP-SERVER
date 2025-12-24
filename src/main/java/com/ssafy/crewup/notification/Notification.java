@@ -16,9 +16,11 @@ import lombok.Setter;
 public class Notification extends BaseTime {
     private Long id;                 // notification.id
     private Long userId;             // users.user_id
+    private Long crewId;
     private String content;
     private String url;
     private Boolean isRead;
     private NotificationType type;   // ENUM
-    private String crewName; // 크루명 추가
+    private String crewName;        // 크루명 추가
+    private String relativeTime;          // "방금 전", "5분 전" 등
 }
