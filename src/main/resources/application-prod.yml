@@ -5,6 +5,13 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
+server:
+  servlet:
+    session:
+      cookie:
+        same-site: none
+        secure: true
+
 logging:
   level:
     root: INFO
@@ -19,4 +26,4 @@ app:
   server:
     url: ${SERVER_URL}
   cors:
-      allowed-origins: https://ssafy-crewup-front.vercel.app
+    allowed-origins: https://ssafy-crewup-front.vercel.app
