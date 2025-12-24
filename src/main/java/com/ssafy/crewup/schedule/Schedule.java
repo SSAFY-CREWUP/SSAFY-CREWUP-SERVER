@@ -1,5 +1,6 @@
 package com.ssafy.crewup.schedule;
 
+import com.ssafy.crewup.enums.ScheduleType;
 import com.ssafy.crewup.global.common.code.BaseTime;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -21,4 +22,6 @@ public class Schedule extends BaseTime {
     private LocalDateTime runDate;
     private String location;
     private Integer maxPeople;
+    private String content;
+    private ScheduleType scheduleType;
 }

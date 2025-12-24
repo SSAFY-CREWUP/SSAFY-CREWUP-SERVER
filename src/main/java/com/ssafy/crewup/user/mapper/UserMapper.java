@@ -1,6 +1,7 @@
 package com.ssafy.crewup.user.mapper;
 
 import com.ssafy.crewup.user.User;
+import jakarta.validation.constraints.NotBlank;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Delete;
@@ -66,4 +67,12 @@ public interface UserMapper {
             "</foreach>" +
             "</script>")
     List<User> findByIds(@Param("userIds") List<Long> userIds);
+    // UserMapper.java에 추가
+
+    @Select("SELECT user_id AS id, email, password, nickname, profile_image AS profileImage, " +
+            "total_distance AS totalDistance, gender, birth_date AS birthDate, " +
+            "average_pace AS averagePace, activity_region AS activityRegion, " +
+            "created_at AS createdAt, updated_at AS updatedAt " +
+            "FROM users WHERE nickname = #{nickname}")
+    User findByNickname(@Param("nickname") String nickname);
 }

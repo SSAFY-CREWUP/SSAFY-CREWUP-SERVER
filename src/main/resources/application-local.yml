@@ -1,7 +1,7 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${DB_LOCAL_URL}jdbc:mysql://localhost:3306/ssafy_crewup?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useSSL=false
+    url: ${DB_LOCAL_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
@@ -15,3 +15,5 @@ logging:
 app:
   server:
     url: http://localhost:8080
+
+
