@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ssafy.crewup.crew.mapper.CrewMapper">
-
     <resultMap id="CrewListMap" type="com.ssafy.crewup.crew.dto.response.CrewListResponse">
         <constructor>
             <arg column="crew_id" javaType="Long"/>
@@ -16,12 +15,10 @@
                  typeHandler="com.ssafy.crewup.global.config.StringListTypeHandler"/>
         </constructor>
     </resultMap>
-
     <sql id="crewColumns">
         crew_id, name, region, member_count, activity_time,
         average_pace, age_group, crew_image, keywords
     </sql>
-
     <select id="searchCrews" resultMap="CrewListMap">
         SELECT <include refid="crewColumns"/>
         FROM crew
@@ -32,14 +29,29 @@
             <if test="region != null and region != ''">
                 AND region = #{region}
             </if>
-            <if test="activityTime != null and activityTime != ''">
-                AND activity_time = #{activityTime}
+            <if test="activityTimes != null and !activityTimes.isEmpty()">
+                AND activity_time IN
+                <foreach item="item" index="index" collection="activityTimes" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
             </if>
-            <if test="genderLimit != null and genderLimit != ''">
-                AND gender_limit = #{genderLimit}
+            <if test="genderLimits != null and !genderLimits.isEmpty()">
+                AND gender_limit IN
+                <foreach item="item" index="index" collection="genderLimits" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
             </if>
-            <if test="ageGroup != null and ageGroup != ''">
-                AND age_group = #{ageGroup}
+            <if test="ageGroups != null and !ageGroups.isEmpty()">
+                AND age_group IN
+                <foreach item="item" index="index" collection="ageGroups" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="minPace != null">
+                AND average_pace &gt;= #{minPace}
+            </if>
+            <if test="maxPace != null">
+                AND average_pace &lt;= #{maxPace}
             </if>
         </where>
         ORDER BY
@@ -52,6 +64,14 @@
             <when test="order == 'ASC'">ASC</when>
             <otherwise>DESC</otherwise>
         </choose>
+    </select>
+
+    <select id="findCrewsByUserId" resultMap="CrewListMap">
+        SELECT c.*
+        FROM crew c
+                 JOIN crew_member cm ON c.crew_id = cm.crew_id
+        WHERE cm.user_id = #{userId} AND cm.status = 'ACCEPTED'
+        ORDER BY c.created_at DESC
     </select>
 
 </mapper>

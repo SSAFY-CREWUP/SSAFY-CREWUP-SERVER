@@ -31,4 +31,24 @@ public interface CrewMemberMapper {
 		"applied_at AS appliedAt, joined_at AS joinedAt " +
 		"FROM crew_member WHERE crew_id = #{crewId} AND user_id = #{userId}")
 	CrewMember findByCrewIdAndUserId(@Param("crewId") Long crewId, @Param("userId") Long userId);
+
+    /**
+     * 크루의 승인된 멤버 조회 (ACCEPTED 상태만)
+     */
+    @Select("SELECT id, crew_id AS crewId, user_id AS userId, " +
+            "role, status, applied_at AS appliedAt, joined_at AS joinedAt, " +
+            "created_at AS createdAt, updated_at AS updatedAt " +
+            "FROM crew_member " +
+            "WHERE crew_id = #{crewId} AND status = 'ACCEPTED' " +
+            "ORDER BY joined_at ASC")
+    List<CrewMember> findAcceptedMembersByCrewId(@Param("crewId") Long crewId);
+
+    /**
+     * 크루 멤버 ID 리스트 조회 (알림 발송용)
+     */
+    @Select("SELECT user_id FROM crew_member " +
+            "WHERE crew_id = #{crewId} AND status = 'ACCEPTED'")
+    List<Long> findMemberIdsByCrewId(@Param("crewId") Long crewId);
+
 }
+
