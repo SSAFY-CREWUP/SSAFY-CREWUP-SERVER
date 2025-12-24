@@ -4,4 +4,97 @@
 
 <mapper namespace="com.ssafy.crewup.board.mapper.BoardMapper">
 
+    <insert id="insertBoard" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO board (crew_id, writer_id, category, title, content, view_count, created_at, updated_at)
+        VALUES (#{crewId}, #{writerId}, #{category}, #{title}, #{content}, 0, NOW(), NOW())
+    </insert>
+
+    <select id="selectBoardDetail" resultType="com.ssafy.crewup.board.dto.response.BoardDetailResponse">
+        SELECT
+            b.board_id AS boardId,
+            b.crew_id AS crewId,
+            b.category,
+            b.title,
+            b.content,
+            b.view_count AS viewCount,
+            b.created_at AS createdAt,
+            u.user_id AS writerId,
+            u.nickname AS writerNickname,
+            u.profile_image AS writerProfileImage
+        FROM board b
+                 JOIN users u ON b.writer_id = u.user_id
+        WHERE b.board_id = #{boardId}
+    </select>
+
+    <select id="selectBoardById" resultType="com.ssafy.crewup.board.Board">
+        SELECT
+            board_id AS id,
+            crew_id AS crewId,
+            writer_id AS writerId,
+            category, title, content, view_count AS viewCount, created_at AS createdAt
+        FROM board
+        WHERE board_id = #{boardId}
+    </select>
+
+    <select id="selectBoardList" resultType="com.ssafy.crewup.board.dto.response.BoardListResponse">
+        SELECT
+        b.board_id AS boardId,
+        b.category,
+        b.title,
+        b.view_count AS viewCount,
+        b.created_at AS createdAt,
+        u.user_id AS writerId,
+        u.nickname AS writerNickname,
+        (SELECT COUNT(*) FROM comment c WHERE c.board_id = b.board_id) AS commentCount
+        FROM board b
+        JOIN users u ON b.writer_id = u.user_id
+        WHERE b.crew_id = #{crewId}
+
+        <if test="category != null">
+            AND b.category = #{category}
+        </if>
+
+        <if test="keyword != null and keyword != ''">
+            AND b.title LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+
+        ORDER BY b.created_at DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="selectRecentBoards" resultType="com.ssafy.crewup.board.dto.response.BoardListResponse">
+        SELECT
+            b.board_id AS boardId,
+            b.category,
+            b.title,
+            b.view_count AS viewCount,
+            b.created_at AS createdAt,
+            u.user_id AS writerId,
+            u.nickname AS writerNickname,
+            (SELECT COUNT(*) FROM comment c WHERE c.board_id = b.board_id) AS commentCount
+        FROM board b
+                 JOIN users u ON b.writer_id = u.user_id
+        WHERE b.crew_id = #{crewId}
+          AND b.category = #{category}
+        ORDER BY b.created_at DESC
+            LIMIT #{limit}
+    </select>
+
+    <update id="updateBoard">
+        UPDATE board
+        SET title = #{request.title},
+            content = #{request.content},
+            category = #{request.category},
+            updated_at = NOW()
+        WHERE board_id = #{boardId}
+    </update>
+
+    <delete id="deleteBoard">
+        DELETE FROM board WHERE board_id = #{boardId}
+    </delete>
+
+    <update id="increaseViewCount">
+        UPDATE board SET view_count = view_count + 1 WHERE board_id = #{boardId}
+    </update>
+
 </mapper>

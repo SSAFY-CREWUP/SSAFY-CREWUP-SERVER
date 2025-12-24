@@ -51,3 +51,4 @@ public interface CrewMemberMapper {
     List<Long> findMemberIdsByCrewId(@Param("crewId") Long crewId);
 
 }
+
