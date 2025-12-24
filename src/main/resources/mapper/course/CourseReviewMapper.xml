@@ -35,4 +35,15 @@
         DELETE FROM course_review WHERE course_id = #{courseId}
     </delete>
 
+    <select id="countByCourseId" resultType="long">
+        SELECT COUNT(*) FROM course_review WHERE course_id = #{courseId}
+    </select>
+
+    <select id="selectRecentReviews" resultType="string">
+        SELECT content
+        FROM course_review
+        WHERE course_id = #{courseId}
+        ORDER BY review_id DESC
+            LIMIT #{limit}
+    </select>
 </mapper>
