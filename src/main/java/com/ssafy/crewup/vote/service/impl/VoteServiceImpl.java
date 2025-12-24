@@ -19,7 +19,6 @@ import com.ssafy.crewup.vote.mapper.VoteOptionMapper;
 import com.ssafy.crewup.vote.mapper.VoteRecordMapper;
 import com.ssafy.crewup.vote.service.VoteService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +28,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class VoteServiceImpl implements VoteService {
@@ -71,8 +69,6 @@ public class VoteServiceImpl implements VoteService {
         // ⭐ 4. 투표 생성 알림 발송
         sendVoteCreatedNotification(vote, userId);
 
-        log.info("투표 생성 완료 - voteId: {}, crewId: {}, userId: {}",
-                vote.getId(), crewId, userId);
     }
 
     @Override
@@ -111,8 +107,6 @@ public class VoteServiceImpl implements VoteService {
             // 카운트 증가
             voteOptionMapper.incrementCount(optionId);
         }
-
-        log.info("투표 완료 - userId: {}, voteId: {}, options: {}", userId, voteId, optionIds);
     }
 
     @Override
@@ -170,11 +164,6 @@ public class VoteServiceImpl implements VoteService {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
         voteMapper.closeVote(voteId);
-
-        // ⭐ 투표 마감 알림 발송
-        sendVoteClosedNotification(vote);
-
-        log.info("투표 마감 - voteId: {}, userId: {}", voteId, userId);
     }
 
     @Override
@@ -188,8 +177,6 @@ public class VoteServiceImpl implements VoteService {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
         voteMapper.delete(voteId);
-
-        log.info("투표 삭제 - voteId: {}, userId: {}", voteId, userId);
     }
 
     // ==================== 알림 발송 메서드 ====================
@@ -201,7 +188,6 @@ public class VoteServiceImpl implements VoteService {
         try {
             Crew crew = crewMapper.findById(vote.getCrewId());
             if (crew == null) {
-                log.warn("크루를 찾을 수 없음 - crewId: {}", vote.getCrewId());
                 return;
             }
 
@@ -211,7 +197,7 @@ public class VoteServiceImpl implements VoteService {
             NotificationEvent event = NotificationEvent.builder()
                     .crewId(vote.getCrewId())
                     .crewName(crew.getName())
-                    .excludeUserId(excludeUserId)  // 생성자 제외
+                    .excludeUserId(excludeUserId)
                     .type(NotificationType.VOTE)
                     .content(content)
                     .url(url)
@@ -219,11 +205,8 @@ public class VoteServiceImpl implements VoteService {
 
             eventPublisher.publishEvent(event);
 
-            log.debug("투표 생성 알림 이벤트 발행 - voteId: {}, title: {}",
-                    vote.getId(), vote.getTitle());
-
         } catch (Exception e) {
-            log.error("투표 생성 알림 발송 실패 - voteId: {}", vote.getId(), e);
+            // 알림 발송 실패 시 조용히 무시
         }
     }
 
@@ -234,7 +217,6 @@ public class VoteServiceImpl implements VoteService {
         try {
             Crew crew = crewMapper.findById(vote.getCrewId());
             if (crew == null) {
-                log.warn("크루를 찾을 수 없음 - crewId: {}", vote.getCrewId());
                 return;
             }
 
@@ -244,7 +226,7 @@ public class VoteServiceImpl implements VoteService {
             NotificationEvent event = NotificationEvent.builder()
                     .crewId(vote.getCrewId())
                     .crewName(crew.getName())
-                    .excludeUserId(null)  // 모든 멤버에게 알림
+                    .excludeUserId(null)
                     .type(NotificationType.VOTE)
                     .content(content)
                     .url(url)
@@ -252,11 +234,8 @@ public class VoteServiceImpl implements VoteService {
 
             eventPublisher.publishEvent(event);
 
-            log.debug("투표 마감 알림 이벤트 발행 - voteId: {}, title: {}",
-                    vote.getId(), vote.getTitle());
-
         } catch (Exception e) {
-            log.error("투표 마감 알림 발송 실패 - voteId: {}", vote.getId(), e);
+            // 알림 발송 실패 시 조용히 무시
         }
     }
 

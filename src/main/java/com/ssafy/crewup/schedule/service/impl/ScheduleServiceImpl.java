@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)  // 기본적으로 읽기 전용
@@ -73,21 +72,8 @@ public class ScheduleServiceImpl implements ScheduleService {
         // ⭐ 일정 생성 알림 발송
         sendScheduleCreatedNotification(schedule, userId);
 
-        log.info("일정 생성 완료 - scheduleId: {}, crewId: {}, userId: {}",
-                schedule.getId(), crewId, userId);
-
         return schedule.getId();
     }
-//    @Transactional
-//    @Override
-//    public Long createSchedule(ScheduleCreateRequest request, Long crewId, Long userId) {
-//        Schedule schedule = request.toEntity(crewId);
-//        scheduleMapper.insert(schedule);
-//
-//        saveScheduleMember(schedule.getId(), userId, ScheduleMemberStatus.CONFIRMED);
-//
-//        return schedule.getId();
-//    }
 
     @Transactional
     @Override
@@ -136,24 +122,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         if (request.getStatus() == ScheduleMemberStatus.CONFIRMED) {
             sendScheduleApprovalNotification(scheduleId, targetMember.getUserId());
         }
-
-        log.info("참가자 상태 변경 - scheduleId: {}, memberId: {}, status: {}",
-                scheduleId, request.getScheduleMemberId(), request.getStatus());
     }
-
-//    @Transactional
-//    @Override
-//    public void updateMemberStatus(Long scheduleId, Long userId, ScheduleMemberStatusUpdateRequest request) {
-//        findScheduleOrThrow(scheduleId);
-//        validateCreator(scheduleId, userId);
-//
-//        ScheduleMember targetMember = findScheduleMemberOrThrow(request.getScheduleMemberId());
-//        validateMemberBelongsToSchedule(targetMember, scheduleId);
-//
-//        scheduleMemberMapper.updateStatus(request.getScheduleMemberId(), request.getStatus());
-//
-//    }
-    // ==================== 알림 발송 메서드 ====================
 
     /**
      * 일정 생성 알림 발송
@@ -162,7 +131,6 @@ public class ScheduleServiceImpl implements ScheduleService {
         try {
             Crew crew = crewMapper.findById(schedule.getCrewId());
             if (crew == null) {
-                log.warn("크루를 찾을 수 없음 - crewId: {}", schedule.getCrewId());
                 return;
             }
 
@@ -172,7 +140,7 @@ public class ScheduleServiceImpl implements ScheduleService {
             NotificationEvent event = NotificationEvent.builder()
                     .crewId(schedule.getCrewId())
                     .crewName(crew.getName())
-                    .excludeUserId(excludeUserId)  // 생성자 제외
+                    .excludeUserId(excludeUserId)
                     .type(NotificationType.SCHEDULE)
                     .content(content)
                     .url(url)
@@ -180,33 +148,29 @@ public class ScheduleServiceImpl implements ScheduleService {
 
             eventPublisher.publishEvent(event);
 
-            log.debug("일정 생성 알림 이벤트 발행 - scheduleId: {}, title: {}",
-                    schedule.getId(), schedule.getTitle());
-
         } catch (Exception e) {
-            log.error("일정 생성 알림 발송 실패 - scheduleId: {}", schedule.getId(), e);
+            // 알림 발송 실패 시 조용히 무시
         }
     }
 
-    //참가 승인 개인 알림
+    /**
+     * 참가 승인 알림 발송 (개인 알림)
+     */
     private void sendScheduleApprovalNotification(Long scheduleId, Long approvedUserId) {
         try {
             Schedule schedule = scheduleMapper.findById(scheduleId);
             if (schedule == null) {
-                log.warn("스케줄을 찾을 수 없음 - scheduleId: {}", scheduleId);
                 return;
             }
 
             Crew crew = crewMapper.findById(schedule.getCrewId());
             if (crew == null) {
-                log.warn("크루를 찾을 수 없음 - crewId: {}", schedule.getCrewId());
                 return;
             }
 
             String content = String.format("'%s' 일정 참가 신청이 승인되었습니다.", schedule.getTitle());
             String url = String.format("/schedule/%d", scheduleId);
 
-            // ⭐ 개인 알림 이벤트 발행
             PersonalNotificationEvent event = PersonalNotificationEvent.builder()
                     .userId(approvedUserId)
                     .crewId(schedule.getCrewId())
@@ -218,15 +182,10 @@ public class ScheduleServiceImpl implements ScheduleService {
 
             eventPublisher.publishEvent(event);
 
-            log.debug("참가 승인 개인 알림 이벤트 발행 - scheduleId: {}, userId: {}",
-                    scheduleId, approvedUserId);
-
         } catch (Exception e) {
-            log.error("참가 승인 알림 발송 실패 - scheduleId: {}, userId: {}",
-                    scheduleId, approvedUserId, e);
+            // 알림 발송 실패 시 조용히 무시
         }
     }
-
 
     // ==================== Helper Methods ====================
 
