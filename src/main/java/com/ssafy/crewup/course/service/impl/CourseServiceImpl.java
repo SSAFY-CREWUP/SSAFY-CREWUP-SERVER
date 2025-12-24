@@ -16,9 +16,12 @@ import com.ssafy.crewup.course.mapper.CourseScrapMapper;
 import com.ssafy.crewup.course.service.CourseService;
 import com.ssafy.crewup.global.common.code.ErrorCode;
 import com.ssafy.crewup.global.common.exception.CustomException;
+import com.ssafy.crewup.global.event.ReviewCreatedEvent;
 import com.ssafy.crewup.global.service.S3Service;
 import com.ssafy.crewup.global.util.GeometryUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,6 +37,7 @@ public class CourseServiceImpl implements CourseService {
     private final CourseScrapMapper  courseScrapMapper;
     private final S3Service s3Service;
     private final GeometryUtil geometryUtil;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -199,6 +203,7 @@ public class CourseServiceImpl implements CourseService {
                 .image(imageUrl)
                 .build();
         courseReviewMapper.insertReview(review);
+        eventPublisher.publishEvent(new ReviewCreatedEvent(courseId));
     }
 
 
@@ -213,7 +218,6 @@ public class CourseServiceImpl implements CourseService {
     @Override
     @Transactional
     public void deleteReview(Long reviewId, Long userId) {
-        // 본인 확인 로직 필요 (Mapper에서 AND writer_id = #{userId}로 처리 가능)
         int deleted = courseReviewMapper.deleteReview(reviewId, userId);
         if (deleted == 0) {
             throw new CustomException(ErrorCode.FORBIDDEN); // 혹은 NOT_FOUND
