@@ -3,6 +3,7 @@ package com.ssafy.crewup.crew.controller;
 import java.util.List;
 
 import com.ssafy.crewup.crew.dto.request.CrewCreateRequest;
+import com.ssafy.crewup.crew.dto.request.CrewMemberStatusUpdateRequest;
 import com.ssafy.crewup.crew.dto.request.CrewSearchRequest;
 import com.ssafy.crewup.crew.dto.response.CrewCreateResponse;
 import com.ssafy.crewup.crew.dto.response.CrewDetailResponse;
@@ -112,6 +113,31 @@ public class CrewController {
 
         return ResponseEntity.ok(
                 ApiResponseBody.onSuccess(SuccessCode.OK, members)
+        );
+    }
+
+
+
+    /**
+     * 크루 멤버 상태 변경 (승인/거절)
+     * - LEADER 또는 MANAGER만 가능
+     */
+    @PutMapping("/{crewId}/members/{memberId}/status")
+    public ResponseEntity<ApiResponseBody<Void>> updateMemberStatus(
+            @PathVariable Long crewId,
+            @PathVariable Long memberId,
+            @Valid @RequestBody CrewMemberStatusUpdateRequest request,
+            HttpSession session) {
+
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
+
+        crewService.updateMemberStatus(crewId, memberId, request.status(), userId);
+
+        return ResponseEntity.ok(
+                ApiResponseBody.onSuccess(SuccessCode.OK)
         );
     }
 }

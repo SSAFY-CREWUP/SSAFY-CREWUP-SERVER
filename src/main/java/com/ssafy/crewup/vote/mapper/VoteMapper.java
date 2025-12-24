@@ -1,5 +1,6 @@
 package com.ssafy.crewup.vote.mapper;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.ssafy.crewup.vote.Vote;

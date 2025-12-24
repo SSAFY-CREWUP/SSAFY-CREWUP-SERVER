@@ -34,9 +34,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CrewServiceImpl implements CrewService {
 
-	private final CrewMapper crewMapper;
-	private final CrewMemberMapper crewMemberMapper;
-	private final UserMapper userMapper;
+    private final CrewMapper crewMapper;
+    private final CrewMemberMapper crewMemberMapper;
+    private final UserMapper userMapper;
 
 	@Override
 	@Transactional
@@ -188,6 +188,25 @@ public class CrewServiceImpl implements CrewService {
         return sortMembersByRoleAndJoinDate(responses);
     }
 
+    @Override
+    @Transactional
+    public void updateMemberStatus(Long crewId, Long memberId, CrewMemberStatus status, Long requestUserId) {
+        validateCrewExists(crewId);
+        validateLeaderOrManager(crewId, requestUserId);
+
+        CrewMember member = findMemberById(memberId);
+        validateMemberBelongsToCrew(member, crewId);
+
+        CrewMemberStatus previousStatus = member.getStatus();
+        updateMemberStatusAndJoinedAt(member, status);
+
+        // WAITING → ACCEPTED인 경우 크루 멤버 수 증가
+        if (shouldIncrementMemberCount(previousStatus, status)) {
+            incrementCrewMemberCount(crewId);
+        }
+    }
+
+
     /**
      * 크루 존재 여부 검증
      */
@@ -253,5 +272,78 @@ public class CrewServiceImpl implements CrewService {
             default:
                 return 4;
         }
+    }
+    /**
+     * 리더 또는 매니저 권한 검증
+     */
+    private void validateLeaderOrManager(Long crewId, Long userId) {
+        CrewMember requestMember = crewMemberMapper.findByCrewIdAndUserId(crewId, userId);
+
+        if (requestMember == null) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        }
+
+        if (requestMember.getRole() == CrewMemberRole.MEMBER) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        }
+    }
+
+    /**
+     * 멤버 조회
+     */
+    private CrewMember findMemberById(Long memberId) {
+        CrewMember member = crewMemberMapper.findById(memberId);
+
+        if (member == null) {
+            throw new CustomException(ErrorCode.NOT_FOUND);
+        }
+
+        return member;
+    }
+
+    /**
+     * 멤버가 해당 크루에 속하는지 검증
+     */
+    private void validateMemberBelongsToCrew(CrewMember member, Long crewId) {
+        if (!member.getCrewId().equals(crewId)) {
+            throw new CustomException(ErrorCode.BAD_REQUEST);
+        }
+    }
+
+    /**
+     * 멤버 상태 및 가입일 업데이트
+     */
+    private void updateMemberStatusAndJoinedAt(CrewMember member, CrewMemberStatus status) {
+        member.setStatus(status);
+
+        // ACCEPTED로 변경 시 가입일 설정
+        if (isAcceptedAndJoinDateNull(status, member.getJoinedAt())) {
+            member.setJoinedAt(LocalDateTime.now());
+        }
+
+        crewMemberMapper.update(member);
+    }
+
+    /**
+     * ACCEPTED 상태이고 가입일이 null인지 확인
+     */
+    private boolean isAcceptedAndJoinDateNull(CrewMemberStatus status, LocalDateTime joinedAt) {
+        return status == CrewMemberStatus.ACCEPTED && joinedAt == null;
+    }
+
+    /**
+     * 멤버 수를 증가시켜야 하는지 확인
+     */
+    private boolean shouldIncrementMemberCount(CrewMemberStatus previousStatus, CrewMemberStatus newStatus) {
+        return previousStatus == CrewMemberStatus.WAITING && newStatus == CrewMemberStatus.ACCEPTED;
+    }
+
+    /**
+     * 크루 멤버 수 증가
+     */
+    private void incrementCrewMemberCount(Long crewId) {
+        Crew crew = crewMapper.findById(crewId);
+        crew.setMemberCount(crew.getMemberCount() + 1);
+        crewMapper.update(crew);
     }
 }
