@@ -50,5 +50,17 @@ public interface CrewMemberMapper {
             "WHERE crew_id = #{crewId} AND status = 'ACCEPTED'")
     List<Long> findMemberIdsByCrewId(@Param("crewId") Long crewId);
 
+    /**
+     * 크루의 가입 대기 중인 멤버 조회 (WAITING 상태만)
+     */
+    @Select("SELECT id, crew_id AS crewId, user_id AS userId, " +
+            "role, status, applied_at AS appliedAt, joined_at AS joinedAt, " +
+            "created_at AS createdAt, updated_at AS updatedAt " +
+            "FROM crew_member " +
+            "WHERE crew_id = #{crewId} AND status = 'WAITING' " +
+            "ORDER BY applied_at ASC")
+    List<CrewMember> findWaitingMembersByCrewId(@Param("crewId") Long crewId);
+
+
 }
 
