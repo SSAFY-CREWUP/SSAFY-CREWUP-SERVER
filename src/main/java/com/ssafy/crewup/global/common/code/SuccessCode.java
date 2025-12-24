@@ -34,7 +34,18 @@ public enum SuccessCode implements BaseCode {
     // Course Review
     REVIEW_CREATE_SUCCESS(HttpStatus.CREATED, "리뷰 등록에 성공했습니다."),
     REVIEW_READ_SUCCESS(HttpStatus.OK, "리뷰 조회에 성공했습니다."),
-    REVIEW_DELETE_SUCCESS(HttpStatus.OK, "리뷰 삭제에 성공했습니다.")
+    REVIEW_DELETE_SUCCESS(HttpStatus.OK, "리뷰 삭제에 성공했습니다."),
+
+    // SuccessCode.java
+    BOARD_CREATE_SUCCESS(HttpStatus.CREATED, "게시글 작성 성공"),
+    BOARD_READ_SUCCESS(HttpStatus.OK, "게시글 조회 성공"),
+    BOARD_UPDATE_SUCCESS(HttpStatus.OK, "게시글 수정 성공"),
+    BOARD_DELETE_SUCCESS(HttpStatus.OK, "게시글 삭제 성공"),
+
+    COMMENT_CREATE_SUCCESS(HttpStatus.CREATED, "댓글 작성 성공"),
+    COMMENT_READ_SUCCESS(HttpStatus.OK, "댓글 조회 성공"),
+    COMMENT_UPDATE_SUCCESS(HttpStatus.OK, "댓글 수정 성공"),
+    COMMENT_DELETE_SUCCESS(HttpStatus.OK, "댓글 삭제 성공")
 	;
 
 	private final HttpStatus httpStatus;
