@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.crewup.board.mapper.CommentMapper">
+
+    <insert id="insertComment" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO comment (board_id, writer_id, content, created_at, updated_at)
+        VALUES (#{boardId}, #{writerId}, #{content}, NOW(), NOW())
+    </insert>
+
+    <select id="selectCommentList" resultType="com.ssafy.crewup.board.dto.response.CommentResponse">
+        SELECT
+            c.comment_id AS commentId,
+            c.content,
+            c.created_at AS createdAt,
+            u.user_id AS writerId,
+            u.nickname AS writerNickname,
+            u.profile_image AS writerProfileImage
+        FROM comment c
+                 JOIN users u ON c.writer_id = u.user_id
+        WHERE c.board_id = #{boardId}
+        ORDER BY c.created_at ASC
+            LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="selectCommentById" resultType="com.ssafy.crewup.board.Comment">
+        SELECT
+            comment_id AS id,
+            board_id AS boardId,
+            writer_id AS writerId,
+            content, created_at AS createdAt
+        FROM comment
+        WHERE comment_id = #{commentId}
+    </select>
+
+    <update id="updateComment">
+        UPDATE comment
+        SET content = #{content},
+            updated_at = NOW()
+        WHERE comment_id = #{commentId}
+    </update>
+
+    <delete id="deleteComment">
+        DELETE FROM comment WHERE comment_id = #{commentId}
+    </delete>
+
+</mapper>
