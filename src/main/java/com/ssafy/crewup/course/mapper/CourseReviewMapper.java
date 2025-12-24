@@ -19,4 +19,8 @@ public interface CourseReviewMapper {
     int deleteReview(@Param("reviewId") Long reviewId, @Param("userId") Long userId);
 
     void deleteReviewsByCourseId(Long courseId);
+
+    long countByCourseId(Long courseId);
+
+    List<String> selectRecentReviews(@Param("courseId") Long courseId, @Param("limit") int limit);
 }

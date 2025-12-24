@@ -156,4 +156,12 @@
         DELETE FROM course WHERE course_id = #{courseId}
     </delete>
 
+    <update id="updateAiAnalysis">
+        UPDATE course
+        SET
+            ai_summary = #{summary},
+            ai_keywords = #{keywords}
+        WHERE course_id = #{courseId}
+    </update>
+
 </mapper>
