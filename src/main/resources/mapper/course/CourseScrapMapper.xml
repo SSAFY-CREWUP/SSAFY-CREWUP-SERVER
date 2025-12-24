@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.crewup.course.mapper.CourseScrapMapper">
+    <select id="existsScrap" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM course_scrap
+        WHERE user_id = #{userId} AND course_id = #{courseId}
+    </select>
+
+    <insert id="insertScrap">
+        INSERT INTO course_scrap (user_id, course_id, created_at, updated_at)
+        VALUES (#{userId}, #{courseId}, NOW(), NOW())
+    </insert>
+
+    <delete id="deleteScrap">
+        DELETE FROM course_scrap WHERE user_id = #{userId} AND course_id = #{courseId}
+    </delete>
+
+    <update id="updateScrapCount">
+        UPDATE course
+        SET scrap_count = scrap_count + #{delta}
+        WHERE course_id = #{courseId}
+    </update>
+
+    <select id="selectMyScrapCourses" resultType="com.ssafy.crewup.course.dto.response.CourseListResponse">
+        SELECT
+            c.course_id, c.title, c.thumbnail, c.difficulty,
+            c.distance, c.expected_time, c.scrap_count,
+            u.nickname AS writerNickname,
+            0.0 AS currentDistance
+        FROM course_scrap s
+                 JOIN course c ON s.course_id = c.course_id
+                 JOIN users u ON c.writer_id = u.user_id
+        WHERE s.user_id = #{userId}
+        ORDER BY s.created_at DESC
+            LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <delete id="deleteScrapsByCourseId">
+        DELETE FROM course_scrap WHERE course_id = #{courseId}
+    </delete>
+
+</mapper>

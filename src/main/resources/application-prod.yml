@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+logging:
+  level:
+    root: INFO
+    com.ssafy.crewup: INFO
+    org.apache.ibatis: ERROR
+
+springdoc:
+  swagger-ui:
+    disable-swagger-default-url: true
+
+app:
+  server:
+    url: ${SERVER_URL}

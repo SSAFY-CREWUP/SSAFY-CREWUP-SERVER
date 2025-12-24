@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.crewup.course.mapper.CourseReviewMapper">
+
+    <insert id="insertReview" parameterType="com.ssafy.crewup.course.CourseReview"
+            useGeneratedKeys="true" keyProperty="id" keyColumn="review_id">
+        INSERT INTO course_review (
+            course_id, writer_id, content, rating, image, created_at, updated_at
+        ) VALUES (
+                     #{courseId}, #{writerId}, #{content}, #{rating}, #{image}, NOW(), NOW()
+                 )
+    </insert>
+
+    <select id="selectReviewList" resultType="com.ssafy.crewup.course.dto.response.CourseReviewResponse">
+        SELECT
+            r.review_id, r.writer_id, r.content, r.rating, r.image, r.created_at,
+            u.nickname AS writerNickname,
+            u.profile_image AS writerProfileImage,
+            CASE WHEN r.writer_id = #{userId} THEN true ELSE false END AS isMyReview
+        FROM course_review r
+                 JOIN users u ON r.writer_id = u.user_id
+        WHERE r.course_id = #{courseId}
+        ORDER BY r.created_at DESC
+            LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <delete id="deleteReview">
+        DELETE FROM course_review
+        WHERE review_id = #{reviewId} AND writer_id = #{userId}
+    </delete>
+
+    <delete id="deleteReviewsByCourseId">
+        DELETE FROM course_review WHERE course_id = #{courseId}
+    </delete>
+
+    <select id="countByCourseId" resultType="long">
+        SELECT COUNT(*) FROM course_review WHERE course_id = #{courseId}
+    </select>
+
+    <select id="selectRecentReviews" resultType="string">
+        SELECT content
+        FROM course_review
+        WHERE course_id = #{courseId}
+        ORDER BY review_id DESC
+            LIMIT #{limit}
+    </select>
+</mapper>
