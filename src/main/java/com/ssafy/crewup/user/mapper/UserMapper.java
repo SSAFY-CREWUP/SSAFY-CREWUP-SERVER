@@ -1,6 +1,7 @@
 package com.ssafy.crewup.user.mapper;
 
 import com.ssafy.crewup.user.User;
+import jakarta.validation.constraints.NotBlank;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Delete;
