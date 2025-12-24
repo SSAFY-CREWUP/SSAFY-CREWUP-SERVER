@@ -30,7 +30,6 @@ public class UserServiceImpl implements UserService {
             throw new CustomException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
-        // 2. User 엔티티 생성 (profileImageUrl 포함)
         User user = request.toEntity(request.getPassword(), profileImageUrl);
 
         // 3. DB 저장
@@ -80,4 +79,3 @@ public class UserServiceImpl implements UserService {
         log.info("추가 정보 등록 완료 - userId: {}", userId);
     }
 }
-

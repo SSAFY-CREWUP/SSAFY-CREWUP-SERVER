@@ -30,5 +30,3 @@ public class User extends BaseTime {
     private String averagePace;
     private Region activityRegion;
 }
-
-
