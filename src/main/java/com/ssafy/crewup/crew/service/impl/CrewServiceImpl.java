@@ -45,7 +45,7 @@ public class CrewServiceImpl implements CrewService {
 		User leaderUser = userMapper.findById(userId);
 		if (leaderUser == null)
 			throw new CustomException(ErrorCode.USER_NOT_FOUND);
-        
+
         // [수정] 페이스 파싱 로직: 6'00"나 6:00 모두 대응 가능하도록 정규식 사용
         Double initialPace = 0.0;
         String rawPace = leaderUser.getAveragePace();
