@@ -21,7 +21,7 @@ public interface CrewMemberMapper {
     @Delete("DELETE FROM crew_member WHERE id = #{id}")
     int delete(@Param("id") Long id);
 
-    @Select("SELECT id, crew_id AS crewId, user_id AS userId, role, status, applied_at AS appliedAt, joined_at AS joinedAt, updated_at AS updatedAt, created_at AS createdAt FROM crew_member WHERE crew_id = #{crewId}")
+    @Select("SELECT id, crew_id AS crewId, user_id AS userId, role, status, applied_at AS appliedAt, joined_at AS joinedAt, updated_at AS updatedAt FROM crew_member WHERE crew_id = #{crewId}")
     List<CrewMember> findByCrewId(@Param("crewId") Long crewId);
 
     @Select("SELECT id, crew_id AS crewId, user_id AS userId, role, status, applied_at AS appliedAt, joined_at AS joinedAt, updated_at AS updatedAt, created_at AS createdAt FROM crew_member WHERE user_id = #{userId}")
