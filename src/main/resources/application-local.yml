@@ -10,6 +10,7 @@ logging:
     root: INFO
     com.ssafy.crewup: DEBUG
     org.apache.ibatis: DEBUG
+    org.springframework.web: DEBUG
 
 app:
   server:
