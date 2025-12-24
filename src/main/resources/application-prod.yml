@@ -18,3 +18,5 @@ springdoc:
 app:
   server:
     url: ${SERVER_URL}
+  cors:
+      allowed-origins: https://ssafy-crewup-front.vercel.app
