@@ -69,6 +69,7 @@ public class VoteServiceImpl implements VoteService {
 				.count(0)
 				.build());
 		}
+        sendVoteCreatedNotification(vote, userId);
 	}
 
 	@Override
@@ -209,6 +210,7 @@ public class VoteServiceImpl implements VoteService {
 			throw new CustomException(ErrorCode.FORBIDDEN);
 		}
 		voteMapper.delete(voteId);
+        sendVoteClosedNotification(vote);
 	}
 
 	/**
