@@ -10,5 +10,4 @@ import lombok.*;
 public class CourseReviewRequest {
     private String content;
     private Integer rating;
-    private String image;
 }
