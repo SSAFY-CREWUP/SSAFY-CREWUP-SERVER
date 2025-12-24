@@ -82,4 +82,15 @@ public class CrewController {
 		crewService.joinCrew(crewId, userId);
 		return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.OK));
 	}
+
+	@GetMapping("/my")
+	public ResponseEntity<ApiResponseBody<List<CrewListResponse>>> getMyCrews(
+		HttpSession session) {
+		Long userId = (Long) session.getAttribute("userId");
+		if (userId == null)
+			throw new CustomException(ErrorCode.UNAUTHORIZED);
+
+		List<CrewListResponse> myCrews = crewService.getMyCrews(userId);
+		return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.OK, myCrews));
+	}
 }

@@ -16,4 +16,6 @@ public interface CrewService {
 	void joinCrew(Long crewId, Long userId);
 
 	List<CrewListResponse> searchCrews(CrewSearchRequest request);
+
+	List<CrewListResponse> getMyCrews(Long userId);
 }
