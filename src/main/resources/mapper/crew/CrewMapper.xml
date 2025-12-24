@@ -10,6 +10,7 @@
             <arg column="activity_time" javaType="String"/>
             <arg column="average_pace" javaType="Double"/>
             <arg column="age_group" javaType="String"/>
+            <arg column="gender_limit" javaType="String"/>
             <arg column="crew_image" javaType="String"/>
             <arg column="keywords" javaType="java.util.List"
                  typeHandler="com.ssafy.crewup.global.config.StringListTypeHandler"/>
@@ -17,7 +18,7 @@
     </resultMap>
     <sql id="crewColumns">
         crew_id, name, region, member_count, activity_time,
-        average_pace, age_group, crew_image, keywords
+        average_pace, age_group, gender_limit, crew_image, keywords
     </sql>
     <select id="searchCrews" resultMap="CrewListMap">
         SELECT <include refid="crewColumns"/>

@@ -10,6 +10,7 @@ public record CrewListResponse(
 	String activityTime,
 	Double averagePace,
 	String ageGroup,
+	String genderLimit,
 	String crewImage,
 	List<String> keywords
 ) {}
