@@ -1,6 +1,7 @@
 	package com.ssafy.crewup.vote.mapper;
 
-	import java.util.List;
+	import java.time.LocalDateTime;
+    import java.util.List;
 
 	import com.ssafy.crewup.vote.Vote;
 	import com.ssafy.crewup.vote.dto.response.VoteResponse;
@@ -48,4 +49,14 @@
 
 		@Delete("DELETE FROM vote WHERE vote_id = #{id}")
 		int delete(Long id);
+
+        /**
+         * 특정 시간 범위 내에 마감되는 투표 조회
+         */
+        @Select("SELECT * FROM votes " +
+                "WHERE end_at BETWEEN #{startTime} AND #{endTime} " +
+                "AND end_at IS NOT NULL " +
+                "ORDER BY end_at ASC")
+        List<Vote> findByEndAtBetween(@Param("startTime") LocalDateTime startTime,
+                                      @Param("endTime") LocalDateTime endTime);
 	}
