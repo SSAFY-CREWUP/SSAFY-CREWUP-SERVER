@@ -63,3 +63,4 @@ public class TestNotificationController {
         return ResponseEntity.ok("✅ 알림 발송 완료: " + content);
     }
 }
+
