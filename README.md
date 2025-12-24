@@ -1,6 +1,6 @@
 # SSAFY-CREWUP-SERVER
 
-#cicd 테스트23
+#cicd 테스트233
 ### Git Convention
 > **commit 메세지**
 >
