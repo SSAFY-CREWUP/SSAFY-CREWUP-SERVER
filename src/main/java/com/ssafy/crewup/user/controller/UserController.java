@@ -5,9 +5,8 @@ import com.ssafy.crewup.global.common.code.SuccessCode;
 import com.ssafy.crewup.global.common.dto.ApiResponseBody;
 import com.ssafy.crewup.global.common.exception.CustomException;
 import com.ssafy.crewup.global.service.S3Service;
-import com.ssafy.crewup.user.dto.request.LoginRequest;
-import com.ssafy.crewup.user.dto.request.UserAdditionalInfoRequest;
-import com.ssafy.crewup.user.dto.request.UserCreateRequest;
+import com.ssafy.crewup.user.dto.request.*;
+import com.ssafy.crewup.user.dto.response.UserResponse;
 import com.ssafy.crewup.user.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -103,6 +102,66 @@ public class UserController {
 
         return ResponseEntity.ok(
                 ApiResponseBody.onSuccess(SuccessCode.USER_ADDITIONAL_INFO_SUCCESS)
+        );
+    }
+
+    // 마이페이지 조회
+    @GetMapping("/mypage")
+    public ResponseEntity<ApiResponseBody<UserResponse>> getMyPage(HttpSession session) {
+
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
+
+        UserResponse userResponse = userService.getUserInfo(userId);
+
+        return ResponseEntity.ok(
+                ApiResponseBody.onSuccess(SuccessCode.USER_INFO_SUCCESS, userResponse)
+        );
+    }
+
+    // 마이페이지 전체 정보 수정
+    @PutMapping(value = "/edit/mypage", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponseBody<Void>> updateMyPage(
+            @Valid @RequestPart("request") UserUpdateRequest request,
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
+            HttpSession session) {
+
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
+
+        // 프로필 이미지 업로드 (있는 경우)
+        String profileImageUrl = null;
+        if (profileImage != null && !profileImage.isEmpty()) {
+            profileImageUrl = s3Service.uploadFile(profileImage, "profiles");
+        }
+
+        // 전체 정보 업데이트
+        userService.updateUserInfo(userId, request, profileImageUrl);
+
+        return ResponseEntity.ok(
+                ApiResponseBody.onSuccess(SuccessCode.USER_UPDATE_SUCCESS)
+        );
+    }
+
+    // 비밀번호 변경
+    @PutMapping("/edit/password")
+    public ResponseEntity<ApiResponseBody<Void>> updatePassword(
+            @Valid @RequestBody PasswordUpdateRequest request,
+            HttpSession session) {
+
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
+
+        userService.updatePassword(userId, request);
+
+        return ResponseEntity.ok(
+                ApiResponseBody.onSuccess(SuccessCode.PASSWORD_UPDATE_SUCCESS)
         );
     }
 }
