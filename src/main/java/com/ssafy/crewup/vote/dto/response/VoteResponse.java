@@ -6,5 +6,7 @@ public record VoteResponse(
 	Long voteId,
 	String title,
 	LocalDateTime endAt,
-	Boolean isClosed
-) {}
+	Boolean isClosed,
+	Integer limitCount,
+	Integer participantCount) {
+}
