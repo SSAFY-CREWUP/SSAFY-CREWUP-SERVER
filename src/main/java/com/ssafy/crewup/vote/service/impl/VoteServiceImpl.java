@@ -1,10 +1,13 @@
 package com.ssafy.crewup.vote.service.impl;
 
+import com.ssafy.crewup.crew.Crew;
 import com.ssafy.crewup.crew.CrewMember;
+import com.ssafy.crewup.crew.mapper.CrewMapper;
 import com.ssafy.crewup.crew.mapper.CrewMemberMapper;
-import com.ssafy.crewup.enums.CrewMemberRole;
+import com.ssafy.crewup.enums.NotificationType;
 import com.ssafy.crewup.global.common.code.ErrorCode;
 import com.ssafy.crewup.global.common.exception.CustomException;
+import com.ssafy.crewup.notification.event.NotificationEvent;
 import com.ssafy.crewup.vote.Vote;
 import com.ssafy.crewup.vote.VoteOption;
 import com.ssafy.crewup.vote.VoteRecord;
@@ -16,6 +19,7 @@ import com.ssafy.crewup.vote.mapper.VoteOptionMapper;
 import com.ssafy.crewup.vote.mapper.VoteRecordMapper;
 import com.ssafy.crewup.vote.service.VoteService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,7 +36,6 @@ import com.ssafy.crewup.vote.dto.response.VoteSummary;
 @Service
 @RequiredArgsConstructor
 public class VoteServiceImpl implements VoteService {
-
 	private final VoteMapper voteMapper;
 	private final VoteOptionMapper voteOptionMapper;
 	private final VoteRecordMapper voteRecordMapper;
@@ -223,4 +226,80 @@ public class VoteServiceImpl implements VoteService {
 				com.ssafy.crewup.global.common.code.ErrorCode.FORBIDDEN);
 		}
 	}
+  
+      // ==================== 알림 발송 메서드 ====================
+
+    /**
+     * 투표 생성 알림 발송
+     */
+    private void sendVoteCreatedNotification(Vote vote, Long excludeUserId) {
+        try {
+            Crew crew = crewMapper.findById(vote.getCrewId());
+            if (crew == null) {
+                return;
+            }
+
+            String content = String.format("새로운 투표 '%s'이(가) 등록되었습니다.", vote.getTitle());
+            String url = String.format("/vote/%d", vote.getId());
+
+            NotificationEvent event = NotificationEvent.builder()
+                    .crewId(vote.getCrewId())
+                    .crewName(crew.getName())
+                    .excludeUserId(excludeUserId)
+                    .type(NotificationType.VOTE)
+                    .content(content)
+                    .url(url)
+                    .build();
+
+            eventPublisher.publishEvent(event);
+
+        } catch (Exception e) {
+            // 알림 발송 실패 시 조용히 무시
+        }
+    }
+
+    /**
+     * 투표 마감 알림 발송
+     */
+    private void sendVoteClosedNotification(Vote vote) {
+        try {
+            Crew crew = crewMapper.findById(vote.getCrewId());
+            if (crew == null) {
+                return;
+            }
+
+            String content = String.format("투표 '%s'이(가) 마감되었습니다.", vote.getTitle());
+            String url = String.format("/vote/%d", vote.getId());
+
+            NotificationEvent event = NotificationEvent.builder()
+                    .crewId(vote.getCrewId())
+                    .crewName(crew.getName())
+                    .excludeUserId(null)
+                    .type(NotificationType.VOTE)
+                    .content(content)
+                    .url(url)
+                    .build();
+
+            eventPublisher.publishEvent(event);
+
+        } catch (Exception e) {
+            // 알림 발송 실패 시 조용히 무시
+        }
+    }
+
+    /**
+     * 권한 검증 헬퍼 메서드
+     */
+    private void validateManagerAuthority(Long userId, Long crewId) {
+        List<CrewMember> members = crewMemberMapper.findByCrewId(crewId);
+
+        CrewMember currentMember = members.stream()
+                .filter(m -> java.util.Objects.equals(m.getUserId(), userId))
+                .findFirst()
+                .orElseThrow(() -> new CustomException(ErrorCode.UNAUTHORIZED));
+
+        if (currentMember.getRole() == com.ssafy.crewup.enums.CrewMemberRole.MEMBER) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        }
+    }
 }

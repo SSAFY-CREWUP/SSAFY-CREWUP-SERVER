@@ -22,6 +22,11 @@ import com.ssafy.crewup.global.common.code.ErrorCode;
 import com.ssafy.crewup.global.common.exception.CustomException;
 import com.ssafy.crewup.user.User;
 import com.ssafy.crewup.user.mapper.UserMapper;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.stream.Collectors;
+import com.ssafy.crewup.crew.dto.response.CrewMemberListResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -164,4 +169,89 @@ public class CrewServiceImpl implements CrewService {
 	public List<CrewListResponse> getMyCrews(Long userId) {
 		return crewMapper.findCrewsByUserId(userId);
 	}
+    /**
+     * 크루 멤버 리스트 조회
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<CrewMemberListResponse> getCrewMemberList(Long crewId) {
+        validateCrewExists(crewId);
+
+        List<CrewMember> crewMembers = crewMemberMapper.findAcceptedMembersByCrewId(crewId);
+        if (crewMembers.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Map<Long, User> userMap = fetchUserMapForMembers(crewMembers);
+        List<CrewMemberListResponse> responses = buildMemberListResponses(crewMembers, userMap);
+
+        return sortMembersByRoleAndJoinDate(responses);
+    }
+
+    /**
+     * 크루 존재 여부 검증
+     */
+    private void validateCrewExists(Long crewId) {
+        if (crewMapper.findById(crewId) == null) {
+            throw new CustomException(ErrorCode.CREW_NOT_FOUND);
+        }
+    }
+
+    /**
+     * 크루 멤버들의 사용자 정보 조회 및 Map 생성
+     */
+    private Map<Long, User> fetchUserMapForMembers(List<CrewMember> crewMembers) {
+        List<Long> userIds = crewMembers.stream()
+                .map(CrewMember::getUserId)
+                .collect(Collectors.toList());
+
+        List<User> users = userMapper.findByIds(userIds);
+
+        return users.stream()
+                .collect(Collectors.toMap(User::getId, user -> user));
+    }
+
+    /**
+     * 멤버 리스트 응답 DTO 생성
+     */
+    private List<CrewMemberListResponse> buildMemberListResponses(
+            List<CrewMember> crewMembers,
+            Map<Long, User> userMap) {
+
+        return crewMembers.stream()
+                .map(member -> {
+                    User user = userMap.get(member.getUserId());
+                    return CrewMemberListResponse.of(member, user);
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 권한 우선순위와 가입일 기준 정렬
+     */
+    private List<CrewMemberListResponse> sortMembersByRoleAndJoinDate(
+            List<CrewMemberListResponse> responses) {
+
+        responses.sort(Comparator
+                .comparing((CrewMemberListResponse r) -> getRolePriority(r.getRole()))
+                .thenComparing(CrewMemberListResponse::getJoinedAt));
+
+        return responses;
+    }
+
+    /**
+     * 권한 우선순위 (LEADER > MANAGER > MEMBER)
+     */
+    private int getRolePriority(CrewMemberRole role) {
+        switch (role) {
+            case LEADER:
+                return 1;
+            case MANAGER:
+                return 2;
+            case MEMBER:
+                return 3;
+            default:
+                return 4;
+        }
+    }
 }

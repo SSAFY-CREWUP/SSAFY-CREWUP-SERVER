@@ -7,6 +7,7 @@ import com.ssafy.crewup.crew.dto.request.CrewSearchRequest;
 import com.ssafy.crewup.crew.dto.response.CrewCreateResponse;
 import com.ssafy.crewup.crew.dto.response.CrewDetailResponse;
 import com.ssafy.crewup.crew.dto.response.CrewListResponse;
+import com.ssafy.crewup.crew.dto.response.CrewMemberListResponse;
 import com.ssafy.crewup.crew.service.CrewService;
 import com.ssafy.crewup.global.common.code.ErrorCode;
 import com.ssafy.crewup.global.common.code.SuccessCode;
@@ -93,4 +94,24 @@ public class CrewController {
 		List<CrewListResponse> myCrews = crewService.getMyCrews(userId);
 		return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.OK, myCrews));
 	}
+    /**
+     * 크루 멤버 리스트 조회
+     */
+    @GetMapping("/{crewId}/members")
+    public ResponseEntity<ApiResponseBody<List<CrewMemberListResponse>>> getCrewMemberList(
+            @PathVariable Long crewId,
+            HttpSession session) {
+
+        // 로그인 체크
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
+
+        List<CrewMemberListResponse> members = crewService.getCrewMemberList(crewId);
+
+        return ResponseEntity.ok(
+                ApiResponseBody.onSuccess(SuccessCode.OK, members)
+        );
+    }
 }

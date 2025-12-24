@@ -11,6 +11,13 @@ public enum SuccessCode implements BaseCode {
 
 	//TODO : 핵심 기능 or 도메인 별로 에러를 분류해주세요! ex. 검색, 필터링, 회원가입/로그인, 등등..
 
+    // 알림 관련 성공
+    NOTIFICATION_LIST_SUCCESS(HttpStatus.OK, "알림 목록 조회 성공"),
+    NOTIFICATION_UNREAD_COUNT_SUCCESS(HttpStatus.OK, "안읽은 알림 개수 조회 성공"),
+    NOTIFICATION_READ_SUCCESS(HttpStatus.OK, "알림 읽음 처리 성공"),
+    NOTIFICATION_READ_ALL_SUCCESS(HttpStatus.OK, "모든 알림 읽음 처리 성공"),
+    NOTIFICATION_DELETE_SUCCESS(HttpStatus.OK, "알림 삭제 성공"),
+
     // 스케줄 관련
     SCHEDULE_LIST_SUCCESS(HttpStatus.OK, "스케줄 목록 조회에 성공했습니다."),
     SCHEDULE_DETAIL_SUCCESS(HttpStatus.OK, "스케줄 상세 조회에 성공했습니다."),
@@ -46,7 +53,18 @@ public enum SuccessCode implements BaseCode {
     // Course Review
     REVIEW_CREATE_SUCCESS(HttpStatus.CREATED, "리뷰 등록에 성공했습니다."),
     REVIEW_READ_SUCCESS(HttpStatus.OK, "리뷰 조회에 성공했습니다."),
-    REVIEW_DELETE_SUCCESS(HttpStatus.OK, "리뷰 삭제에 성공했습니다.")
+    REVIEW_DELETE_SUCCESS(HttpStatus.OK, "리뷰 삭제에 성공했습니다."),
+
+    // SuccessCode.java
+    BOARD_CREATE_SUCCESS(HttpStatus.CREATED, "게시글 작성 성공"),
+    BOARD_READ_SUCCESS(HttpStatus.OK, "게시글 조회 성공"),
+    BOARD_UPDATE_SUCCESS(HttpStatus.OK, "게시글 수정 성공"),
+    BOARD_DELETE_SUCCESS(HttpStatus.OK, "게시글 삭제 성공"),
+
+    COMMENT_CREATE_SUCCESS(HttpStatus.CREATED, "댓글 작성 성공"),
+    COMMENT_READ_SUCCESS(HttpStatus.OK, "댓글 조회 성공"),
+    COMMENT_UPDATE_SUCCESS(HttpStatus.OK, "댓글 수정 성공"),
+    COMMENT_DELETE_SUCCESS(HttpStatus.OK, "댓글 삭제 성공")
 	;
 
 	private final HttpStatus httpStatus;
