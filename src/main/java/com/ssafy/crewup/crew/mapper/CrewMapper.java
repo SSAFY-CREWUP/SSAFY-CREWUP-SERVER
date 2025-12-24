@@ -18,8 +18,10 @@ import com.ssafy.crewup.crew.dto.response.CrewListResponse;
 @Mapper
 public interface CrewMapper {
 
-	@Insert("INSERT INTO crew(name, region, description, crew_image, member_count, activity_time, age_group, gender_limit, average_pace, keywords) " +
-		"VALUES(#{name}, #{region}, #{description}, #{crewImage}, #{memberCount}, #{activityTime}, #{ageGroup}, #{genderLimit}, #{averagePace}, " +
+	@Insert("INSERT INTO crew(name, region, description, crew_image, member_count, activity_time, age_group, gender_limit, average_pace, keywords) "
+		+
+		"VALUES(#{name}, #{region}, #{description}, #{crewImage}, #{memberCount}, #{activityTime}, #{ageGroup}, #{genderLimit}, #{averagePace}, "
+		+
 		"#{keywords, typeHandler=com.ssafy.crewup.global.config.StringListTypeHandler})")
 	@Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "crew_id")
 	int insert(Crew crew);
@@ -29,8 +31,7 @@ public interface CrewMapper {
 		"gender_limit AS genderLimit, average_pace AS averagePace, keywords, " +
 		"created_at AS createdAt, updated_at AS updatedAt FROM crew WHERE crew_id = #{id}")
 	@Results(id = "CrewResultMap", value = {
-		@Result(property = "keywords", column = "keywords",
-			typeHandler = com.ssafy.crewup.global.config.StringListTypeHandler.class)
+		@Result(property = "keywords", column = "keywords", typeHandler = com.ssafy.crewup.global.config.StringListTypeHandler.class)
 	})
 	Crew findById(@Param("id") Long id);
 
@@ -41,4 +42,6 @@ public interface CrewMapper {
 		"JOIN users u ON cm.user_id = u.user_id " +
 		"WHERE cm.crew_id = #{crewId} AND cm.status = 'ACCEPTED'")
 	List<CrewMemberDetailResponse> findMembersByCrewId(@Param("crewId") Long crewId);
+
+	List<CrewListResponse> findCrewsByUserId(@Param("userId") Long userId);
 }

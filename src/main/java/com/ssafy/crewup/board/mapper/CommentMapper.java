@@ -1,24 +1,29 @@
 package com.ssafy.crewup.board.mapper;
 
 import com.ssafy.crewup.board.Comment;
-import org.apache.ibatis.annotations.*;
+import com.ssafy.crewup.board.dto.response.CommentResponse;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
 import java.util.List;
+import java.util.Optional;
 
 @Mapper
 public interface CommentMapper {
-    @Select("SELECT comment_id AS id, board_id AS boardId, writer_id AS writerId, content, created_at AS createdAt, updated_at AS updatedAt FROM comment WHERE comment_id = #{id}")
-    Comment findById(@Param("id") Long id);
+    // 1. 댓글 작성
+    void insertComment(Comment comment);
 
-    @Insert("INSERT INTO comment(board_id, writer_id, content) VALUES(#{boardId}, #{writerId}, #{content})")
-    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "comment_id")
-    int insert(Comment comment);
+    // 2. 댓글 목록 조회
+    List<CommentResponse> selectCommentList(@Param("boardId") Long boardId,
+                                            @Param("offset") int offset,
+                                            @Param("size") int size);
 
-    @Update("UPDATE comment SET content=#{content} WHERE comment_id=#{id}")
-    int update(Comment comment);
+    // 3. 댓글 엔티티 조회 (수정/삭제 권한 확인용)
+    Optional<Comment> selectCommentById(@Param("commentId") Long commentId);
 
-    @Delete("DELETE FROM comment WHERE comment_id = #{id}")
-    int delete(@Param("id") Long id);
+    // 4. 댓글 수정
+    void updateComment(@Param("commentId") Long commentId, @Param("content") String content);
 
-    @Select("SELECT comment_id AS id, board_id AS boardId, writer_id AS writerId, content, created_at AS createdAt, updated_at AS updatedAt FROM comment WHERE board_id = #{boardId} ORDER BY comment_id ASC")
-    List<Comment> findByBoardId(@Param("boardId") Long boardId);
+    // 5. 댓글 삭제
+    void deleteComment(@Param("commentId") Long commentId);
 }
