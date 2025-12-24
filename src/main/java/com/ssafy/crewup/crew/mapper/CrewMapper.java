@@ -2,13 +2,7 @@ package com.ssafy.crewup.crew.mapper;
 
 import java.util.List;
 
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Options;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Result;
-import org.apache.ibatis.annotations.Results;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 
 import com.ssafy.crewup.crew.Crew;
 import com.ssafy.crewup.crew.dto.response.CrewMemberDetailResponse;
@@ -44,4 +38,21 @@ public interface CrewMapper {
 	List<CrewMemberDetailResponse> findMembersByCrewId(@Param("crewId") Long crewId);
 
 	List<CrewListResponse> findCrewsByUserId(@Param("userId") Long userId);
+
+
+    // ⭐ 추가: 크루 정보 업데이트
+    @Update("UPDATE crew SET " +
+            "name = #{name}, " +
+            "region = #{region}, " +
+            "description = #{description}, " +
+            "crew_image = #{crewImage}, " +
+            "member_count = #{memberCount}, " +
+            "activity_time = #{activityTime}, " +
+            "age_group = #{ageGroup}, " +
+            "gender_limit = #{genderLimit}, " +
+            "average_pace = #{averagePace}, " +
+            "keywords = #{keywords, typeHandler=com.ssafy.crewup.global.config.StringListTypeHandler}, " +
+            "updated_at = NOW() " +
+            "WHERE crew_id = #{id}")
+    int update(Crew crew);
 }

@@ -7,6 +7,7 @@ import com.ssafy.crewup.crew.dto.response.CrewDetailResponse;
 import com.ssafy.crewup.crew.dto.request.CrewSearchRequest;
 import com.ssafy.crewup.crew.dto.response.CrewListResponse;
 import com.ssafy.crewup.crew.dto.response.CrewMemberListResponse;
+import com.ssafy.crewup.enums.CrewMemberStatus;
 
 public interface CrewService {
 
@@ -21,4 +22,6 @@ public interface CrewService {
 	List<CrewListResponse> getMyCrews(Long userId);
   
   List<CrewMemberListResponse> getCrewMemberList(Long crewId);
+
+    void updateMemberStatus(Long crewId, Long memberId, CrewMemberStatus status, Long requestUserId);
 }

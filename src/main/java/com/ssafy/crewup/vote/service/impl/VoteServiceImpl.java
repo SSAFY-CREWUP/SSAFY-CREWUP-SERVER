@@ -40,6 +40,8 @@ public class VoteServiceImpl implements VoteService {
 	private final VoteOptionMapper voteOptionMapper;
 	private final VoteRecordMapper voteRecordMapper;
 	private final CrewMemberMapper crewMemberMapper;
+    private final CrewMapper crewMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
 	@Override
 	@Transactional
@@ -287,19 +289,5 @@ public class VoteServiceImpl implements VoteService {
         }
     }
 
-    /**
-     * 권한 검증 헬퍼 메서드
-     */
-    private void validateManagerAuthority(Long userId, Long crewId) {
-        List<CrewMember> members = crewMemberMapper.findByCrewId(crewId);
 
-        CrewMember currentMember = members.stream()
-                .filter(m -> java.util.Objects.equals(m.getUserId(), userId))
-                .findFirst()
-                .orElseThrow(() -> new CustomException(ErrorCode.UNAUTHORIZED));
-
-        if (currentMember.getRole() == com.ssafy.crewup.enums.CrewMemberRole.MEMBER) {
-            throw new CustomException(ErrorCode.FORBIDDEN);
-        }
-    }
 }
