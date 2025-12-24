@@ -76,7 +76,17 @@
         c.distance,
         c.expected_time,
         c.scrap_count,
+        ST_AsText(c.main_point) as main_point_wkt,
         u.nickname as writer_nickname,
+
+        <choose>
+            <when test="userId != null">
+                EXISTS (SELECT 1 FROM course_scrap s WHERE s.course_id = c.course_id AND s.user_id = #{userId}) AS isScrapped,
+            </when>
+            <otherwise>
+                false AS isScrapped,
+            </otherwise>
+        </choose>
 
         <choose>
             <when test="lat != null and lng != null">
@@ -94,28 +104,6 @@
         <if test="lat != null and lng != null and radius != null">
             AND ST_Distance_Sphere(c.main_point, ST_SRID(POINT(#{lng}, #{lat}), 4326)) &lt;= #{radius}
         </if>
-
-        <if test="keyword != null and keyword != ''">
-            AND (c.title LIKE CONCAT('%', #{keyword}, '%')
-            OR c.description LIKE CONCAT('%', #{keyword}, '%'))
-        </if>
-
-        <if test="difficulty != null and difficulty != ''">
-            AND c.difficulty = #{difficulty}
-        </if>
-
-        ORDER BY
-        <choose>
-            <when test="sort == 'popular'"> c.scrap_count DESC, c.created_at DESC </when>
-
-            <when test="sort == 'distance' and lat != null and lng != null">
-                current_distance ASC
-            </when>
-
-            <otherwise>
-                c.created_at DESC
-            </otherwise>
-        </choose>
 
         LIMIT #{size} OFFSET #{offset}
     </select>

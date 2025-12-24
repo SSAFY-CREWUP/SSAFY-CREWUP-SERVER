@@ -7,8 +7,10 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 @Builder
 public class CourseSearchCondition {
+    private Long userId;
     private String keyword;
     private Difficulty difficulty;
 

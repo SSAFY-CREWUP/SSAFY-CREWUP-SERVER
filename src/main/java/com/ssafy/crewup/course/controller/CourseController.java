@@ -52,7 +52,11 @@ public class CourseController {
             @ModelAttribute CourseSearchCondition condition,
             HttpSession session
     ) {
-        getUserIdOrThrow(session); // 로그인 체크만 수행 (비회원 접근 차단)
+        log.info(condition.toString());
+
+        Long userId = getUserIdOrThrow(session);
+
+        condition.setUserId(userId);
 
         List<CourseListResponse> courses = courseService.getCourseList(condition);
         return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.COURSE_READ_SUCCESS, courses));
