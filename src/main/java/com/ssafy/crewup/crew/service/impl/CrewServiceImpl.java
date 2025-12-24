@@ -43,15 +43,31 @@ public class CrewServiceImpl implements CrewService {
 	public Long createCrew(CrewCreateRequest request, String imageUrl, Long userId) {
 		// 1. 크루장 정보 및 초기 페이스 설정
 		User leaderUser = userMapper.findById(userId);
-		if (leaderUser == null) throw new CustomException(ErrorCode.USER_NOT_FOUND);
+		if (leaderUser == null)
+			throw new CustomException(ErrorCode.USER_NOT_FOUND);
 
 		Double initialPace = 0.0;
-		if (leaderUser.getAveragePace() != null) {
+		if (leaderUser.getAveragePace() != null && !leaderUser.getAveragePace().isEmpty()) {
 			try {
-				initialPace = Double.parseDouble(leaderUser.getAveragePace());
+				System.out.println("User Average Pace Raw: " + leaderUser.getAveragePace());
+				if (leaderUser.getAveragePace().contains(":")) {
+					String[] parts = leaderUser.getAveragePace().split(":");
+					if (parts.length == 2) {
+						double minutes = Double.parseDouble(parts[0]);
+						double seconds = Double.parseDouble(parts[1]);
+						// Store as MM.SS for simple visual handling (e.g. 5:30 -> 5.30)
+						initialPace = minutes + (seconds / 100.0);
+					}
+				} else {
+					initialPace = Double.parseDouble(leaderUser.getAveragePace());
+				}
+				System.out.println("Calculated Initial Pace: " + initialPace);
 			} catch (NumberFormatException e) {
+				System.out.println("Failed to parse pace: " + e.getMessage());
 				initialPace = 0.0;
 			}
+		} else {
+			System.out.println("User Average Pace is null or empty");
 		}
 
 		// 2. Crew 엔티티 빌드 (imageUrl 파라미터를 직접 사용)
@@ -109,8 +125,7 @@ public class CrewServiceImpl implements CrewService {
 			crew.getGenderLimit(),
 			crew.getAveragePace(),
 			crew.getKeywords(),
-			members
-		);
+			members);
 	}
 
 	@Override
@@ -149,6 +164,11 @@ public class CrewServiceImpl implements CrewService {
 		return crewMapper.searchCrews(request);
 	}
 
+	@Override
+	@Transactional(readOnly = true)
+	public List<CrewListResponse> getMyCrews(Long userId) {
+		return crewMapper.findCrewsByUserId(userId);
+	}
     /**
      * 크루 멤버 리스트 조회
      */

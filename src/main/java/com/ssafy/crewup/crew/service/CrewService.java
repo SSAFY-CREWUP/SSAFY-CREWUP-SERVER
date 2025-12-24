@@ -18,6 +18,7 @@ public interface CrewService {
 
 	List<CrewListResponse> searchCrews(CrewSearchRequest request);
 
-    // ⭐ 크루 멤버 리스트 조회
-    List<CrewMemberListResponse> getCrewMemberList(Long crewId);
+	List<CrewListResponse> getMyCrews(Long userId);
+  
+  List<CrewMemberListResponse> getCrewMemberList(Long crewId);
 }
