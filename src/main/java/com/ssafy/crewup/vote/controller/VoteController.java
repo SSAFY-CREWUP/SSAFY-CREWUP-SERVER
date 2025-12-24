@@ -63,12 +63,6 @@ public class VoteController {
 		return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.OK, voteService.getVoteResult(userId, voteId)));
 	}
 
-	private Long getUserId(HttpSession session) {
-		Long userId = (Long) session.getAttribute("userId");
-		if (userId == null) throw new CustomException(ErrorCode.UNAUTHORIZED);
-		return userId;
-	}
-
 	@GetMapping("/crew/{crewId}/votes")
 	public ResponseEntity<ApiResponseBody<VoteListContainer>> getVoteList(
 		@PathVariable Long crewId,
@@ -85,5 +79,20 @@ public class VoteController {
 		VoteListContainer response = new VoteListContainer(activeVotes, endedVotes);
 
 		return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.OK, response));
+	}
+
+	@PostMapping("/vote/{voteId}/close")
+	public ResponseEntity<ApiResponseBody<Void>> closeVote(
+		@PathVariable Long voteId,
+		HttpSession session) {
+		Long userId = getUserId(session);
+		voteService.closeVote(userId, voteId);
+		return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.OK));
+	}
+
+	private Long getUserId(HttpSession session) {
+		Long userId = (Long) session.getAttribute("userId");
+		if (userId == null) throw new CustomException(ErrorCode.UNAUTHORIZED);
+		return userId;
 	}
 }
