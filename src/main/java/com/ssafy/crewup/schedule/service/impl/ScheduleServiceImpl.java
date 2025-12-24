@@ -1,8 +1,13 @@
 package com.ssafy.crewup.schedule.service.impl;
 
+import com.ssafy.crewup.crew.Crew;
+import com.ssafy.crewup.crew.mapper.CrewMapper;
+import com.ssafy.crewup.enums.NotificationType;
 import com.ssafy.crewup.enums.ScheduleMemberStatus;
 import com.ssafy.crewup.global.common.code.ErrorCode;
 import com.ssafy.crewup.global.common.exception.CustomException;
+import com.ssafy.crewup.notification.event.NotificationEvent;
+import com.ssafy.crewup.notification.event.PersonalNotificationEvent;
 import com.ssafy.crewup.schedule.Schedule;
 import com.ssafy.crewup.schedule.ScheduleMember;
 import com.ssafy.crewup.schedule.dto.request.ScheduleCreateRequest;
@@ -17,6 +22,8 @@ import com.ssafy.crewup.user.User;
 import com.ssafy.crewup.user.dto.response.UserResponse;
 import com.ssafy.crewup.user.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +40,8 @@ public class ScheduleServiceImpl implements ScheduleService {
     private final ScheduleMapper scheduleMapper;
     private final ScheduleMemberMapper scheduleMemberMapper;
     private final UserMapper userMapper;
+    private final CrewMapper crewMapper;  // ⭐ 크루 정보 조회용
+    private final ApplicationEventPublisher eventPublisher;  // ⭐ 알림 이벤트 발행용
 
     @Override
     public List<ScheduleGetResponse> getScheduleList(Long crewId) {
@@ -59,6 +68,9 @@ public class ScheduleServiceImpl implements ScheduleService {
         scheduleMapper.insert(schedule);
 
         saveScheduleMember(schedule.getId(), userId, ScheduleMemberStatus.CONFIRMED);
+
+        // ⭐ 일정 생성 알림 발송
+        sendScheduleCreatedNotification(schedule, userId);
 
         return schedule.getId();
     }
@@ -94,7 +106,6 @@ public class ScheduleServiceImpl implements ScheduleService {
         boolean isCreator = creator != null && creator.getUserId().equals(userId);
         return ScheduleCreatorCheckResponse.of(isCreator);
     }
-
     @Transactional
     @Override
     public void updateMemberStatus(Long scheduleId, Long userId, ScheduleMemberStatusUpdateRequest request) {
@@ -104,8 +115,76 @@ public class ScheduleServiceImpl implements ScheduleService {
         ScheduleMember targetMember = findScheduleMemberOrThrow(request.getScheduleMemberId());
         validateMemberBelongsToSchedule(targetMember, scheduleId);
 
+        // 상태 업데이트
         scheduleMemberMapper.updateStatus(request.getScheduleMemberId(), request.getStatus());
 
+        // ⭐ 승인/거절 알림 발송 (승인된 경우만)
+        if (request.getStatus() == ScheduleMemberStatus.CONFIRMED) {
+            sendScheduleApprovalNotification(scheduleId, targetMember.getUserId());
+        }
+    }
+
+    /**
+     * 일정 생성 알림 발송
+     */
+    private void sendScheduleCreatedNotification(Schedule schedule, Long excludeUserId) {
+        try {
+            Crew crew = crewMapper.findById(schedule.getCrewId());
+            if (crew == null) {
+                return;
+            }
+
+            String content = String.format("새로운 일정 '%s'이(가) 등록되었습니다.", schedule.getTitle());
+            String url = String.format("/schedule/%d", schedule.getId());
+
+            NotificationEvent event = NotificationEvent.builder()
+                    .crewId(schedule.getCrewId())
+                    .crewName(crew.getName())
+                    .excludeUserId(excludeUserId)
+                    .type(NotificationType.SCHEDULE)
+                    .content(content)
+                    .url(url)
+                    .build();
+
+            eventPublisher.publishEvent(event);
+
+        } catch (Exception e) {
+            // 알림 발송 실패 시 조용히 무시
+        }
+    }
+
+    /**
+     * 참가 승인 알림 발송 (개인 알림)
+     */
+    private void sendScheduleApprovalNotification(Long scheduleId, Long approvedUserId) {
+        try {
+            Schedule schedule = scheduleMapper.findById(scheduleId);
+            if (schedule == null) {
+                return;
+            }
+
+            Crew crew = crewMapper.findById(schedule.getCrewId());
+            if (crew == null) {
+                return;
+            }
+
+            String content = String.format("'%s' 일정 참가 신청이 승인되었습니다.", schedule.getTitle());
+            String url = String.format("/schedule/%d", scheduleId);
+
+            PersonalNotificationEvent event = PersonalNotificationEvent.builder()
+                    .userId(approvedUserId)
+                    .crewId(schedule.getCrewId())
+                    .crewName(crew.getName())
+                    .type(NotificationType.SCHEDULE)
+                    .content(content)
+                    .url(url)
+                    .build();
+
+            eventPublisher.publishEvent(event);
+
+        } catch (Exception e) {
+            // 알림 발송 실패 시 조용히 무시
+        }
     }
 
     // ==================== Helper Methods ====================

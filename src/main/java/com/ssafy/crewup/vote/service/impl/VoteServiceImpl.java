@@ -1,10 +1,13 @@
 package com.ssafy.crewup.vote.service.impl;
 
+import com.ssafy.crewup.crew.Crew;
 import com.ssafy.crewup.crew.CrewMember;
+import com.ssafy.crewup.crew.mapper.CrewMapper;
 import com.ssafy.crewup.crew.mapper.CrewMemberMapper;
-import com.ssafy.crewup.enums.CrewMemberRole;
+import com.ssafy.crewup.enums.NotificationType;
 import com.ssafy.crewup.global.common.code.ErrorCode;
 import com.ssafy.crewup.global.common.exception.CustomException;
+import com.ssafy.crewup.notification.event.NotificationEvent;
 import com.ssafy.crewup.vote.Vote;
 import com.ssafy.crewup.vote.VoteOption;
 import com.ssafy.crewup.vote.VoteRecord;
@@ -16,22 +19,29 @@ import com.ssafy.crewup.vote.mapper.VoteOptionMapper;
 import com.ssafy.crewup.vote.mapper.VoteRecordMapper;
 import com.ssafy.crewup.vote.service.VoteService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
+
+import com.ssafy.crewup.vote.dto.response.VoteOptionResponse;
+import com.ssafy.crewup.vote.dto.response.VoteSummary;
 
 @Service
 @RequiredArgsConstructor
 public class VoteServiceImpl implements VoteService {
-
 	private final VoteMapper voteMapper;
 	private final VoteOptionMapper voteOptionMapper;
 	private final VoteRecordMapper voteRecordMapper;
 	private final CrewMemberMapper crewMemberMapper;
+    private final CrewMapper crewMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
 	@Override
 	@Transactional
@@ -65,7 +75,8 @@ public class VoteServiceImpl implements VoteService {
 	@Transactional
 	public void castVote(Long userId, Long voteId, List<Long> optionIds) {
 		Vote vote = voteMapper.findById(voteId);
-		if (vote == null) throw new CustomException(ErrorCode.NOT_FOUND);
+		if (vote == null)
+			throw new CustomException(ErrorCode.NOT_FOUND);
 
 		// 마감 시간 확인
 		if (vote.getEndAt() != null && vote.getEndAt().isBefore(LocalDateTime.now())) {
@@ -103,7 +114,8 @@ public class VoteServiceImpl implements VoteService {
 	@Transactional(readOnly = true)
 	public VoteResultResponse getVoteResult(Long userId, Long voteId) {
 		Vote vote = voteMapper.findById(voteId);
-		if (vote == null) throw new CustomException(ErrorCode.NOT_FOUND);
+		if (vote == null)
+			throw new CustomException(ErrorCode.NOT_FOUND);
 
 		// 투표 참여자만 결과 조회 가능
 		List<VoteRecord> userRecords = voteRecordMapper.findByUserId(userId);
@@ -115,35 +127,64 @@ public class VoteServiceImpl implements VoteService {
 		List<VoteOption> options = voteOptionMapper.findByVoteId(voteId);
 		List<VoteResultResponse.OptionDetail> optionDetails = options.stream().map(option -> {
 			// 무기명 투표가 아닐 경우에만 투표자 명단 포함 (시간 순 정렬)
-			List<VoteResultResponse.VoterInfo> voters = vote.getIsAnonymous() ? List.of() :
-				voteRecordMapper.findVotersByOptionId(option.getId());
+			List<VoteResultResponse.VoterInfo> voters = vote.getIsAnonymous() ? List.of()
+				: voteRecordMapper.findVotersByOptionId(option.getId());
 
 			return new VoteResultResponse.OptionDetail(
 				option.getId(),
 				option.getContent(),
 				option.getCount(),
-				voters
-			);
+				voters);
 		}).collect(Collectors.toList());
 
 		return new VoteResultResponse(
 			vote.getId(),
 			vote.getTitle(),
 			vote.getIsAnonymous(),
-			optionDetails
-		);
+			optionDetails);
 	}
 
 	@Override
 	@Transactional(readOnly = true)
 	public List<VoteResponse> getActiveVotes(Long crewId) {
-		return voteMapper.findActiveVotes(crewId);
+		List<VoteSummary> summaries = voteMapper.findActiveVotes(crewId);
+		return mapToVoteResponse(summaries);
 	}
 
 	@Override
 	@Transactional(readOnly = true)
 	public List<VoteResponse> getEndedVotes(Long crewId) {
-		return voteMapper.findEndedVotes(crewId);
+		List<VoteSummary> summaries = voteMapper.findEndedVotes(crewId);
+		return mapToVoteResponse(summaries);
+	}
+
+	private List<VoteResponse> mapToVoteResponse(List<VoteSummary> summaries) {
+		if (summaries.isEmpty())
+			return new ArrayList<>();
+
+		List<Long> voteIds = summaries.stream().map(VoteSummary::voteId).toList();
+
+		// N+1 fetch for safety
+		List<VoteOption> allOptions = new ArrayList<>();
+		for (Long id : voteIds) {
+			allOptions.addAll(voteOptionMapper.findByVoteId(id));
+		}
+
+		Map<Long, List<VoteOptionResponse>> optionsMap = allOptions.stream()
+			.collect(Collectors.groupingBy(VoteOption::getVoteId,
+				Collectors.mapping(opt -> new VoteOptionResponse(opt.getId(), opt.getContent()),
+					Collectors.toList())));
+
+		return summaries.stream().map(s -> new VoteResponse(
+			s.voteId(),
+			s.title(),
+			s.endAt(),
+			s.isClosed(),
+			s.limitCount(),
+			s.participantCount(),
+			s.multipleChoice(),
+			s.isAnonymous(),
+			optionsMap.getOrDefault(s.voteId(), new ArrayList<>()))).toList();
 	}
 
 	@Override
@@ -160,7 +201,8 @@ public class VoteServiceImpl implements VoteService {
 	@Transactional
 	public void deleteVote(Long userId, Long voteId) {
 		Vote vote = voteMapper.findById(voteId);
-		if (vote == null) throw new CustomException(ErrorCode.NOT_FOUND);
+		if (vote == null)
+			throw new CustomException(ErrorCode.NOT_FOUND);
 
 		// 작성자만 삭제 가능
 		if (!vote.getCreatorId().equals(userId)) {
@@ -186,4 +228,66 @@ public class VoteServiceImpl implements VoteService {
 				com.ssafy.crewup.global.common.code.ErrorCode.FORBIDDEN);
 		}
 	}
+  
+      // ==================== 알림 발송 메서드 ====================
+
+    /**
+     * 투표 생성 알림 발송
+     */
+    private void sendVoteCreatedNotification(Vote vote, Long excludeUserId) {
+        try {
+            Crew crew = crewMapper.findById(vote.getCrewId());
+            if (crew == null) {
+                return;
+            }
+
+            String content = String.format("새로운 투표 '%s'이(가) 등록되었습니다.", vote.getTitle());
+            String url = String.format("/vote/%d", vote.getId());
+
+            NotificationEvent event = NotificationEvent.builder()
+                    .crewId(vote.getCrewId())
+                    .crewName(crew.getName())
+                    .excludeUserId(excludeUserId)
+                    .type(NotificationType.VOTE)
+                    .content(content)
+                    .url(url)
+                    .build();
+
+            eventPublisher.publishEvent(event);
+
+        } catch (Exception e) {
+            // 알림 발송 실패 시 조용히 무시
+        }
+    }
+
+    /**
+     * 투표 마감 알림 발송
+     */
+    private void sendVoteClosedNotification(Vote vote) {
+        try {
+            Crew crew = crewMapper.findById(vote.getCrewId());
+            if (crew == null) {
+                return;
+            }
+
+            String content = String.format("투표 '%s'이(가) 마감되었습니다.", vote.getTitle());
+            String url = String.format("/vote/%d", vote.getId());
+
+            NotificationEvent event = NotificationEvent.builder()
+                    .crewId(vote.getCrewId())
+                    .crewName(crew.getName())
+                    .excludeUserId(null)
+                    .type(NotificationType.VOTE)
+                    .content(content)
+                    .url(url)
+                    .build();
+
+            eventPublisher.publishEvent(event);
+
+        } catch (Exception e) {
+            // 알림 발송 실패 시 조용히 무시
+        }
+    }
+
+
 }
