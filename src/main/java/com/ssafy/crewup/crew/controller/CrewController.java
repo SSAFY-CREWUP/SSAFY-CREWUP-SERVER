@@ -140,4 +140,25 @@ public class CrewController {
                 ApiResponseBody.onSuccess(SuccessCode.OK)
         );
     }
+
+    /**
+     * 크루 가입 대기 중인 멤버 리스트 조회 (WAITING 상태)
+     * - LEADER 또는 MANAGER만 조회 가능
+     */
+    @GetMapping("/{crewId}/members/waiting")
+    public ResponseEntity<ApiResponseBody<List<CrewMemberListResponse>>> getWaitingMemberList(
+            @PathVariable Long crewId,
+            HttpSession session) {
+
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
+
+        List<CrewMemberListResponse> waitingMembers = crewService.getWaitingMemberList(crewId);
+
+        return ResponseEntity.ok(
+                ApiResponseBody.onSuccess(SuccessCode.OK, waitingMembers)
+        );
+    }
 }

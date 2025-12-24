@@ -346,4 +346,24 @@ public class CrewServiceImpl implements CrewService {
         crew.setMemberCount(crew.getMemberCount() + 1);
         crewMapper.update(crew);
     }
+    @Override
+    @Transactional(readOnly = true)
+    public List<CrewMemberListResponse> getWaitingMemberList(Long crewId) {
+        validateCrewExists(crewId);
+
+        List<CrewMember> waitingMembers = crewMemberMapper.findWaitingMembersByCrewId(crewId);
+        if (waitingMembers.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Map<Long, User> userMap = fetchUserMapForMembers(waitingMembers);
+        List<CrewMemberListResponse> responses = buildMemberListResponses(waitingMembers, userMap);
+
+        // 신청일 순서대로 정렬 (먼저 신청한 순)
+        responses.sort(Comparator.comparing(CrewMemberListResponse::getJoinedAt,
+                Comparator.nullsLast(Comparator.naturalOrder())));
+
+        return responses;
+    }
+
 }
