@@ -24,4 +24,5 @@ public interface CrewService {
   List<CrewMemberListResponse> getCrewMemberList(Long crewId);
 
     void updateMemberStatus(Long crewId, Long memberId, CrewMemberStatus status, Long requestUserId);
+    List<CrewMemberListResponse> getWaitingMemberList(Long crewId);
 }
