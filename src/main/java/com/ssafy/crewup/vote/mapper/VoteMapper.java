@@ -3,8 +3,6 @@ package com.ssafy.crewup.vote.mapper;
 import java.util.List;
 
 import com.ssafy.crewup.vote.Vote;
-import com.ssafy.crewup.vote.dto.response.VoteResponse;
-
 import org.apache.ibatis.annotations.*;
 
 @Mapper
@@ -26,12 +24,14 @@ public interface VoteMapper {
 					v.end_at AS endAt,
 					false AS isClosed,
 					v.limit_count AS limitCount,
-					(SELECT COUNT(DISTINCT user_id) FROM vote_record WHERE vote_id = v.vote_id) AS participantCount
+					(SELECT COUNT(DISTINCT user_id) FROM vote_record WHERE vote_id = v.vote_id) AS participantCount,
+					v.multiple_choice AS multipleChoice,
+					v.is_anonymous AS isAnonymous
 				FROM vote v
 				WHERE v.crew_id = #{crewId} AND v.end_at > NOW()
 				ORDER BY v.created_at DESC
 			""")
-	List<VoteResponse> findActiveVotes(Long crewId);
+	List<com.ssafy.crewup.vote.dto.response.VoteSummary> findActiveVotes(Long crewId);
 
 	@Select("""
 				SELECT
@@ -40,12 +40,14 @@ public interface VoteMapper {
 					v.end_at AS endAt,
 					true AS isClosed,
 					v.limit_count AS limitCount,
-					(SELECT COUNT(DISTINCT user_id) FROM vote_record WHERE vote_id = v.vote_id) AS participantCount
+					(SELECT COUNT(DISTINCT user_id) FROM vote_record WHERE vote_id = v.vote_id) AS participantCount,
+					v.multiple_choice AS multipleChoice,
+					v.is_anonymous AS isAnonymous
 				FROM vote v
 				WHERE v.crew_id = #{crewId} AND v.end_at <= NOW()
 				ORDER BY v.end_at DESC
 			""")
-	List<VoteResponse> findEndedVotes(Long crewId);
+	List<com.ssafy.crewup.vote.dto.response.VoteSummary> findEndedVotes(Long crewId);
 
 	@Update("UPDATE vote SET end_at = NOW() WHERE vote_id = #{id}")
 	int closeVote(Long id);

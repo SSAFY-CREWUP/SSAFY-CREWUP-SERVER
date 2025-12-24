@@ -21,8 +21,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
+
+import com.ssafy.crewup.vote.dto.response.VoteOptionResponse;
+import com.ssafy.crewup.vote.dto.response.VoteSummary;
 
 @Service
 @RequiredArgsConstructor
@@ -65,7 +70,8 @@ public class VoteServiceImpl implements VoteService {
 	@Transactional
 	public void castVote(Long userId, Long voteId, List<Long> optionIds) {
 		Vote vote = voteMapper.findById(voteId);
-		if (vote == null) throw new CustomException(ErrorCode.NOT_FOUND);
+		if (vote == null)
+			throw new CustomException(ErrorCode.NOT_FOUND);
 
 		// 마감 시간 확인
 		if (vote.getEndAt() != null && vote.getEndAt().isBefore(LocalDateTime.now())) {
@@ -103,7 +109,8 @@ public class VoteServiceImpl implements VoteService {
 	@Transactional(readOnly = true)
 	public VoteResultResponse getVoteResult(Long userId, Long voteId) {
 		Vote vote = voteMapper.findById(voteId);
-		if (vote == null) throw new CustomException(ErrorCode.NOT_FOUND);
+		if (vote == null)
+			throw new CustomException(ErrorCode.NOT_FOUND);
 
 		// 투표 참여자만 결과 조회 가능
 		List<VoteRecord> userRecords = voteRecordMapper.findByUserId(userId);
@@ -115,35 +122,64 @@ public class VoteServiceImpl implements VoteService {
 		List<VoteOption> options = voteOptionMapper.findByVoteId(voteId);
 		List<VoteResultResponse.OptionDetail> optionDetails = options.stream().map(option -> {
 			// 무기명 투표가 아닐 경우에만 투표자 명단 포함 (시간 순 정렬)
-			List<VoteResultResponse.VoterInfo> voters = vote.getIsAnonymous() ? List.of() :
-				voteRecordMapper.findVotersByOptionId(option.getId());
+			List<VoteResultResponse.VoterInfo> voters = vote.getIsAnonymous() ? List.of()
+				: voteRecordMapper.findVotersByOptionId(option.getId());
 
 			return new VoteResultResponse.OptionDetail(
 				option.getId(),
 				option.getContent(),
 				option.getCount(),
-				voters
-			);
+				voters);
 		}).collect(Collectors.toList());
 
 		return new VoteResultResponse(
 			vote.getId(),
 			vote.getTitle(),
 			vote.getIsAnonymous(),
-			optionDetails
-		);
+			optionDetails);
 	}
 
 	@Override
 	@Transactional(readOnly = true)
 	public List<VoteResponse> getActiveVotes(Long crewId) {
-		return voteMapper.findActiveVotes(crewId);
+		List<VoteSummary> summaries = voteMapper.findActiveVotes(crewId);
+		return mapToVoteResponse(summaries);
 	}
 
 	@Override
 	@Transactional(readOnly = true)
 	public List<VoteResponse> getEndedVotes(Long crewId) {
-		return voteMapper.findEndedVotes(crewId);
+		List<VoteSummary> summaries = voteMapper.findEndedVotes(crewId);
+		return mapToVoteResponse(summaries);
+	}
+
+	private List<VoteResponse> mapToVoteResponse(List<VoteSummary> summaries) {
+		if (summaries.isEmpty())
+			return new ArrayList<>();
+
+		List<Long> voteIds = summaries.stream().map(VoteSummary::voteId).toList();
+
+		// N+1 fetch for safety
+		List<VoteOption> allOptions = new ArrayList<>();
+		for (Long id : voteIds) {
+			allOptions.addAll(voteOptionMapper.findByVoteId(id));
+		}
+
+		Map<Long, List<VoteOptionResponse>> optionsMap = allOptions.stream()
+			.collect(Collectors.groupingBy(VoteOption::getVoteId,
+				Collectors.mapping(opt -> new VoteOptionResponse(opt.getId(), opt.getContent()),
+					Collectors.toList())));
+
+		return summaries.stream().map(s -> new VoteResponse(
+			s.voteId(),
+			s.title(),
+			s.endAt(),
+			s.isClosed(),
+			s.limitCount(),
+			s.participantCount(),
+			s.multipleChoice(),
+			s.isAnonymous(),
+			optionsMap.getOrDefault(s.voteId(), new ArrayList<>()))).toList();
 	}
 
 	@Override
@@ -160,7 +196,8 @@ public class VoteServiceImpl implements VoteService {
 	@Transactional
 	public void deleteVote(Long userId, Long voteId) {
 		Vote vote = voteMapper.findById(voteId);
-		if (vote == null) throw new CustomException(ErrorCode.NOT_FOUND);
+		if (vote == null)
+			throw new CustomException(ErrorCode.NOT_FOUND);
 
 		// 작성자만 삭제 가능
 		if (!vote.getCreatorId().equals(userId)) {
