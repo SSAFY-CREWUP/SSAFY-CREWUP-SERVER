@@ -31,4 +31,12 @@ public interface CrewMemberMapper {
 		"applied_at AS appliedAt, joined_at AS joinedAt " +
 		"FROM crew_member WHERE crew_id = #{crewId} AND user_id = #{userId}")
 	CrewMember findByCrewIdAndUserId(@Param("crewId") Long crewId, @Param("userId") Long userId);
+
+    /**
+     * 크루의 모든 멤버 ID 조회
+     * - 알림 발송 시 사용
+     */
+    @Select("SELECT user_id FROM crew_member WHERE crew_id = #{crewId}")
+    List<Long> findMemberIdsByCrewId(@Param("crewId") Long crewId);
 }
+
