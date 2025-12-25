@@ -1,15 +1,13 @@
 package com.ssafy.crewup.schedule.controller;
 
-import com.ssafy.crewup.global.common.code.ErrorCode;
+import com.ssafy.crewup.global.annotation.LoginUser;
 import com.ssafy.crewup.global.common.code.SuccessCode;
 import com.ssafy.crewup.global.common.dto.ApiResponseBody;
-import com.ssafy.crewup.global.common.exception.CustomException;
 import com.ssafy.crewup.schedule.dto.request.ScheduleCreateRequest;
 import com.ssafy.crewup.schedule.dto.request.ScheduleMemberStatusUpdateRequest;
 import com.ssafy.crewup.schedule.dto.response.ScheduleCreatorCheckResponse;
 import com.ssafy.crewup.schedule.dto.response.ScheduleGetResponse;
 import com.ssafy.crewup.schedule.service.ScheduleService;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -52,13 +50,7 @@ public class ScheduleController {
     public ResponseEntity<ApiResponseBody<Void>> createSchedule(
             @PathVariable Long crewId,
             @Valid @RequestBody ScheduleCreateRequest request,
-            HttpSession session) {
-
-        Long userId = (Long) session.getAttribute("userId");
-
-        if (userId == null) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
-        }
+            @LoginUser Long userId) {
 
         scheduleService.createSchedule(request, crewId, userId);
 
@@ -69,13 +61,7 @@ public class ScheduleController {
     @PostMapping("/{scheduleId}/join")
     public ResponseEntity<ApiResponseBody<Void>> joinSchedule(
             @PathVariable Long scheduleId,
-            HttpSession session) {
-
-        Long userId = (Long) session.getAttribute("userId");
-
-        if (userId == null) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
-        }
+            @LoginUser Long userId) {
 
         scheduleService.joinSchedule(scheduleId, userId);
 
@@ -83,17 +69,12 @@ public class ScheduleController {
                 ApiResponseBody.onSuccess(SuccessCode.SCHEDULE_JOIN_SUCCESS)
         );
     }
+
     // 스케줄 삭제
     @DeleteMapping("/{scheduleId}/delete")
     public ResponseEntity<ApiResponseBody<Void>> deleteSchedule(
             @PathVariable Long scheduleId,
-            HttpSession session) {
-
-        Long userId = (Long) session.getAttribute("userId");
-
-        if (userId == null) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
-        }
+            @LoginUser Long userId) {
 
         scheduleService.deleteSchedule(scheduleId, userId);
 
@@ -106,13 +87,7 @@ public class ScheduleController {
     @GetMapping("/{scheduleId}/status/check")
     public ResponseEntity<ApiResponseBody<ScheduleCreatorCheckResponse>> checkCreator(
             @PathVariable Long scheduleId,
-            HttpSession session) {
-
-        Long userId = (Long) session.getAttribute("userId");
-
-        if (userId == null) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
-        }
+            @LoginUser Long userId) {
 
         ScheduleCreatorCheckResponse response = scheduleService.checkCreator(scheduleId, userId);
 
@@ -126,13 +101,7 @@ public class ScheduleController {
     public ResponseEntity<ApiResponseBody<Void>> updateMemberStatus(
             @PathVariable Long scheduleId,
             @Valid @RequestBody ScheduleMemberStatusUpdateRequest request,
-            HttpSession session) {
-
-        Long userId = (Long) session.getAttribute("userId");
-
-        if (userId == null) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
-        }
+            @LoginUser Long userId) {
 
         scheduleService.updateMemberStatus(scheduleId, userId, request);
 

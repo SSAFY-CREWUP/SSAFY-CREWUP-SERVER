@@ -1,13 +1,11 @@
 package com.ssafy.crewup.notification.controller;
 
-import com.ssafy.crewup.global.common.code.ErrorCode;
+import com.ssafy.crewup.global.annotation.LoginUser;
 import com.ssafy.crewup.global.common.code.SuccessCode;
 import com.ssafy.crewup.global.common.dto.ApiResponseBody;
-import com.ssafy.crewup.global.common.exception.CustomException;
 import com.ssafy.crewup.notification.dto.response.NotificationResponse;
 import com.ssafy.crewup.notification.dto.response.UnreadCountResponse;
 import com.ssafy.crewup.notification.service.NotificationService;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/v1/notification")
 @RequiredArgsConstructor
@@ -30,13 +27,7 @@ public class NotificationController {
      */
     @GetMapping("/list")
     public ResponseEntity<ApiResponseBody<List<NotificationResponse>>> getNotifications(
-            HttpSession session) {
-
-        Long userId = (Long) session.getAttribute("userId");
-
-        if (userId == null) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
-        }
+            @LoginUser Long userId) {
 
         List<NotificationResponse> notifications = notificationService.getNotifications(userId, DEFAULT_LIMIT);
 
@@ -50,13 +41,7 @@ public class NotificationController {
      */
     @GetMapping("/unread-count")
     public ResponseEntity<ApiResponseBody<UnreadCountResponse>> getUnreadCount(
-            HttpSession session) {
-
-        Long userId = (Long) session.getAttribute("userId");
-
-        if (userId == null) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
-        }
+            @LoginUser Long userId) {
 
         int unreadCount = notificationService.getUnreadCount(userId);
         UnreadCountResponse response = UnreadCountResponse.of(unreadCount);
@@ -72,13 +57,7 @@ public class NotificationController {
     @PutMapping("/{notificationId}/read")
     public ResponseEntity<ApiResponseBody<Void>> markAsRead(
             @PathVariable Long notificationId,
-            HttpSession session) {
-
-        Long userId = (Long) session.getAttribute("userId");
-
-        if (userId == null) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
-        }
+            @LoginUser Long userId) {
 
         notificationService.markAsRead(notificationId, userId);
 
@@ -92,13 +71,7 @@ public class NotificationController {
      */
     @PutMapping("/read-all")
     public ResponseEntity<ApiResponseBody<Void>> markAllAsRead(
-            HttpSession session) {
-
-        Long userId = (Long) session.getAttribute("userId");
-
-        if (userId == null) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
-        }
+            @LoginUser Long userId) {
 
         notificationService.markAllAsRead(userId);
 
@@ -113,13 +86,7 @@ public class NotificationController {
     @DeleteMapping("/{notificationId}")
     public ResponseEntity<ApiResponseBody<Void>> deleteNotification(
             @PathVariable Long notificationId,
-            HttpSession session) {
-
-        Long userId = (Long) session.getAttribute("userId");
-
-        if (userId == null) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
-        }
+            @LoginUser Long userId) {
 
         notificationService.deleteNotification(notificationId, userId);
 
