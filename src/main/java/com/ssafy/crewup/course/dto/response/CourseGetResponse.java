@@ -31,6 +31,8 @@ public class CourseGetResponse {
     private String aiKeywords;
     private String pathWkt;          // DB: path (LINESTRING)
 
+    private Double avgRating;
+
     // 작성자 정보
     private WriterDto writer;
 

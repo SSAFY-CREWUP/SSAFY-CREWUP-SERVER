@@ -44,6 +44,7 @@
         <result property="avgPaceSeconds" column="avg_pace_seconds"/>
         <result property="myPaceSeconds" column="my_pace_seconds"/>
         <result property="isScrapped" column="isScrapped"/>
+        <result property="avgRating" column="avg_rating"/>
 
         <association property="writer" javaType="com.ssafy.crewup.course.dto.common.WriterDto">
             <id property="userId" column="user_id"/>
@@ -61,6 +62,11 @@
 
             (SELECT COUNT(*) FROM course_scrap s
              WHERE s.course_id = c.course_id AND s.user_id = #{userId}) > 0 AS isScrapped,
+
+            (SELECT AVG(rating)
+             FROM course_review cr
+             WHERE cr.course_id = c.course_id
+            ) AS avg_rating,
 
             (SELECT AVG(difficulty_score)
              FROM course_review cr
@@ -130,9 +136,36 @@
         JOIN users u ON c.writer_id = u.user_id
         WHERE 1=1
 
+        <!-- 검색어 필터 -->
+        <if test="keyword != null and keyword != ''">
+            AND c.title LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+
+        <!-- 난이도 필터 -->
+        <if test="difficulty != null">
+            AND c.difficulty = #{difficulty}
+        </if>
+
+        <!-- 거리 필터 (기존 로직 유지) -->
         <if test="lat != null and lng != null and radius != null">
             AND ST_Distance_Sphere(c.main_point, ST_SRID(POINT(#{lng}, #{lat}), 4326)) &lt;= #{radius}
         </if>
+
+        <!-- 정렬 로직 -->
+        <choose>
+            <when test="sort == 'popularity'">
+                ORDER BY c.view_count DESC, c.created_at DESC
+            </when>
+            <when test="sort == 'distance' and lat != null and lng != null">
+                ORDER BY current_distance ASC
+            </when>
+            <when test="sort == 'name'">
+                ORDER BY c.title ASC
+            </when>
+            <otherwise>
+                ORDER BY c.created_at DESC
+            </otherwise>
+        </choose>
 
         LIMIT #{size} OFFSET #{offset}
     </select>
