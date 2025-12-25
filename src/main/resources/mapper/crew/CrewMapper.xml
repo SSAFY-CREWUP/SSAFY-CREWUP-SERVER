@@ -26,10 +26,10 @@
         FROM crew
         <where>
             <if test="search != null and search != ''">
-                AND name LIKE CONCAT('%', #{search}, '%')
+                AND (name LIKE CONCAT('%', #{search}, '%') OR region LIKE CONCAT('%', #{search}, '%'))
             </if>
             <if test="region != null and region != ''">
-                AND region = #{region}
+                AND region LIKE CONCAT('%', #{region}, '%')
             </if>
             <if test="activityTimes != null and !activityTimes.isEmpty()">
                 AND activity_time IN
