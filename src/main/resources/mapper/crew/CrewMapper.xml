@@ -14,11 +14,12 @@
             <arg column="crew_image" javaType="String"/>
             <arg column="keywords" javaType="java.util.List"
                  typeHandler="com.ssafy.crewup.global.config.StringListTypeHandler"/>
+            <arg column="match_score" javaType="Integer"/>
         </constructor>
     </resultMap>
     <sql id="crewColumns">
         crew_id, name, region, member_count, activity_time,
-        average_pace, age_group, gender_limit, crew_image, keywords
+        average_pace, age_group, gender_limit, crew_image, keywords, 0 as match_score
     </sql>
     <select id="searchCrews" resultMap="CrewListMap">
         SELECT <include refid="crewColumns"/>
@@ -68,7 +69,7 @@
     </select>
 
     <select id="findCrewsByUserId" resultMap="CrewListMap">
-        SELECT c.*
+        SELECT c.*, 0 as match_score
         FROM crew c
                  JOIN crew_member cm ON c.crew_id = cm.crew_id
         WHERE cm.user_id = #{userId} AND cm.status = 'ACCEPTED'

@@ -28,15 +28,16 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import com.ssafy.crewup.crew.dto.response.CrewMemberListResponse;
 
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class CrewServiceImpl implements CrewService {
 
-    private final CrewMapper crewMapper;
-    private final CrewMemberMapper crewMemberMapper;
-    private final UserMapper userMapper;
+	private final CrewMapper crewMapper;
+	private final CrewMemberMapper crewMemberMapper;
+	private final UserMapper userMapper;
 
 	@Override
 	@Transactional
@@ -169,201 +170,286 @@ public class CrewServiceImpl implements CrewService {
 	public List<CrewListResponse> getMyCrews(Long userId) {
 		return crewMapper.findCrewsByUserId(userId);
 	}
-    /**
-     * 크루 멤버 리스트 조회
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public List<CrewMemberListResponse> getCrewMemberList(Long crewId) {
-        validateCrewExists(crewId);
 
-        List<CrewMember> crewMembers = crewMemberMapper.findAcceptedMembersByCrewId(crewId);
-        if (crewMembers.isEmpty()) {
-            return Collections.emptyList();
-        }
+	/**
+	 * 크루 멤버 리스트 조회
+	 */
+	@Override
+	@Transactional(readOnly = true)
+	public List<CrewMemberListResponse> getCrewMemberList(Long crewId) {
+		validateCrewExists(crewId);
 
-        Map<Long, User> userMap = fetchUserMapForMembers(crewMembers);
-        List<CrewMemberListResponse> responses = buildMemberListResponses(crewMembers, userMap);
+		List<CrewMember> crewMembers = crewMemberMapper.findAcceptedMembersByCrewId(crewId);
+		if (crewMembers.isEmpty()) {
+			return Collections.emptyList();
+		}
 
-        return sortMembersByRoleAndJoinDate(responses);
-    }
+		Map<Long, User> userMap = fetchUserMapForMembers(crewMembers);
+		List<CrewMemberListResponse> responses = buildMemberListResponses(crewMembers, userMap);
 
-    @Override
-    @Transactional
-    public void updateMemberStatus(Long crewId, Long memberId, CrewMemberStatus status, Long requestUserId) {
-        validateCrewExists(crewId);
-        validateLeaderOrManager(crewId, requestUserId);
+		return sortMembersByRoleAndJoinDate(responses);
+	}
 
-        CrewMember member = findMemberById(memberId);
-        validateMemberBelongsToCrew(member, crewId);
+	@Override
+	@Transactional
+	public void updateMemberStatus(Long crewId, Long memberId, CrewMemberStatus status, Long requestUserId) {
+		validateCrewExists(crewId);
+		validateLeaderOrManager(crewId, requestUserId);
 
-        CrewMemberStatus previousStatus = member.getStatus();
-        updateMemberStatusAndJoinedAt(member, status);
+		CrewMember member = findMemberById(memberId);
+		validateMemberBelongsToCrew(member, crewId);
 
-        // WAITING → ACCEPTED인 경우 크루 멤버 수 증가
-        if (shouldIncrementMemberCount(previousStatus, status)) {
-            incrementCrewMemberCount(crewId);
-        }
-    }
+		CrewMemberStatus previousStatus = member.getStatus();
+		updateMemberStatusAndJoinedAt(member, status);
 
+		// WAITING → ACCEPTED인 경우 크루 멤버 수 증가
+		if (shouldIncrementMemberCount(previousStatus, status)) {
+			incrementCrewMemberCount(crewId);
+		}
+	}
 
-    /**
-     * 크루 존재 여부 검증
-     */
-    private void validateCrewExists(Long crewId) {
-        if (crewMapper.findById(crewId) == null) {
-            throw new CustomException(ErrorCode.CREW_NOT_FOUND);
-        }
-    }
+	/**
+	 * 크루 존재 여부 검증
+	 */
+	private void validateCrewExists(Long crewId) {
+		if (crewMapper.findById(crewId) == null) {
+			throw new CustomException(ErrorCode.CREW_NOT_FOUND);
+		}
+	}
 
-    /**
-     * 크루 멤버들의 사용자 정보 조회 및 Map 생성
-     */
-    private Map<Long, User> fetchUserMapForMembers(List<CrewMember> crewMembers) {
-        List<Long> userIds = crewMembers.stream()
-                .map(CrewMember::getUserId)
-                .collect(Collectors.toList());
+	/**
+	 * 크루 멤버들의 사용자 정보 조회 및 Map 생성
+	 */
+	private Map<Long, User> fetchUserMapForMembers(List<CrewMember> crewMembers) {
+		List<Long> userIds = crewMembers.stream()
+			.map(CrewMember::getUserId)
+			.collect(Collectors.toList());
 
-        List<User> users = userMapper.findByIds(userIds);
+		List<User> users = userMapper.findByIds(userIds);
 
-        return users.stream()
-                .collect(Collectors.toMap(User::getId, user -> user));
-    }
+		return users.stream()
+			.collect(Collectors.toMap(User::getId, user -> user));
+	}
 
-    /**
-     * 멤버 리스트 응답 DTO 생성
-     */
-    private List<CrewMemberListResponse> buildMemberListResponses(
-            List<CrewMember> crewMembers,
-            Map<Long, User> userMap) {
+	/**
+	 * 멤버 리스트 응답 DTO 생성
+	 */
+	private List<CrewMemberListResponse> buildMemberListResponses(
+		List<CrewMember> crewMembers,
+		Map<Long, User> userMap) {
 
-        return crewMembers.stream()
-                .map(member -> {
-                    User user = userMap.get(member.getUserId());
-                    return CrewMemberListResponse.of(member, user);
-                })
-                .collect(Collectors.toList());
-    }
+		return crewMembers.stream()
+			.map(member -> {
+				User user = userMap.get(member.getUserId());
+				return CrewMemberListResponse.of(member, user);
+			})
+			.collect(Collectors.toList());
+	}
 
-    /**
-     * 권한 우선순위와 가입일 기준 정렬
-     */
-    private List<CrewMemberListResponse> sortMembersByRoleAndJoinDate(
-            List<CrewMemberListResponse> responses) {
+	/**
+	 * 권한 우선순위와 가입일 기준 정렬
+	 */
+	private List<CrewMemberListResponse> sortMembersByRoleAndJoinDate(
+		List<CrewMemberListResponse> responses) {
 
-        responses.sort(Comparator
-                .comparing((CrewMemberListResponse r) -> getRolePriority(r.getRole()))
-                .thenComparing(CrewMemberListResponse::getJoinedAt));
+		responses.sort(Comparator
+			.comparing((CrewMemberListResponse r) -> getRolePriority(r.getRole()))
+			.thenComparing(CrewMemberListResponse::getJoinedAt));
 
-        return responses;
-    }
+		return responses;
+	}
 
-    /**
-     * 권한 우선순위 (LEADER > MANAGER > MEMBER)
-     */
-    private int getRolePriority(CrewMemberRole role) {
-        switch (role) {
-            case LEADER:
-                return 1;
-            case MANAGER:
-                return 2;
-            case MEMBER:
-                return 3;
-            default:
-                return 4;
-        }
-    }
-    /**
-     * 리더 또는 매니저 권한 검증
-     */
-    private void validateLeaderOrManager(Long crewId, Long userId) {
-        CrewMember requestMember = crewMemberMapper.findByCrewIdAndUserId(crewId, userId);
+	/**
+	 * 권한 우선순위 (LEADER > MANAGER > MEMBER)
+	 */
+	private int getRolePriority(CrewMemberRole role) {
+		switch (role) {
+			case LEADER:
+				return 1;
+			case MANAGER:
+				return 2;
+			case MEMBER:
+				return 3;
+			default:
+				return 4;
+		}
+	}
 
-        if (requestMember == null) {
-            throw new CustomException(ErrorCode.FORBIDDEN);
-        }
+	/**
+	 * 리더 또는 매니저 권한 검증
+	 */
+	private void validateLeaderOrManager(Long crewId, Long userId) {
+		CrewMember requestMember = crewMemberMapper.findByCrewIdAndUserId(crewId, userId);
 
-        if (requestMember.getRole() == CrewMemberRole.MEMBER) {
-            throw new CustomException(ErrorCode.FORBIDDEN);
-        }
-    }
+		if (requestMember == null) {
+			throw new CustomException(ErrorCode.FORBIDDEN);
+		}
 
-    /**
-     * 멤버 조회
-     */
-    private CrewMember findMemberById(Long memberId) {
-        CrewMember member = crewMemberMapper.findById(memberId);
+		if (requestMember.getRole() == CrewMemberRole.MEMBER) {
+			throw new CustomException(ErrorCode.FORBIDDEN);
+		}
+	}
 
-        if (member == null) {
-            throw new CustomException(ErrorCode.NOT_FOUND);
-        }
+	/**
+	 * 멤버 조회
+	 */
+	private CrewMember findMemberById(Long memberId) {
+		CrewMember member = crewMemberMapper.findById(memberId);
 
-        return member;
-    }
+		if (member == null) {
+			throw new CustomException(ErrorCode.NOT_FOUND);
+		}
 
-    /**
-     * 멤버가 해당 크루에 속하는지 검증
-     */
-    private void validateMemberBelongsToCrew(CrewMember member, Long crewId) {
-        if (!member.getCrewId().equals(crewId)) {
-            throw new CustomException(ErrorCode.BAD_REQUEST);
-        }
-    }
+		return member;
+	}
 
-    /**
-     * 멤버 상태 및 가입일 업데이트
-     */
-    private void updateMemberStatusAndJoinedAt(CrewMember member, CrewMemberStatus status) {
-        member.setStatus(status);
+	/**
+	 * 멤버가 해당 크루에 속하는지 검증
+	 */
+	private void validateMemberBelongsToCrew(CrewMember member, Long crewId) {
+		if (!member.getCrewId().equals(crewId)) {
+			throw new CustomException(ErrorCode.BAD_REQUEST);
+		}
+	}
 
-        // ACCEPTED로 변경 시 가입일 설정
-        if (isAcceptedAndJoinDateNull(status, member.getJoinedAt())) {
-            member.setJoinedAt(LocalDateTime.now());
-        }
+	/**
+	 * 멤버 상태 및 가입일 업데이트
+	 */
+	private void updateMemberStatusAndJoinedAt(CrewMember member, CrewMemberStatus status) {
+		member.setStatus(status);
 
-        crewMemberMapper.update(member);
-    }
+		// ACCEPTED로 변경 시 가입일 설정
+		if (isAcceptedAndJoinDateNull(status, member.getJoinedAt())) {
+			member.setJoinedAt(LocalDateTime.now());
+		}
 
-    /**
-     * ACCEPTED 상태이고 가입일이 null인지 확인
-     */
-    private boolean isAcceptedAndJoinDateNull(CrewMemberStatus status, LocalDateTime joinedAt) {
-        return status == CrewMemberStatus.ACCEPTED && joinedAt == null;
-    }
+		crewMemberMapper.update(member);
+	}
 
-    /**
-     * 멤버 수를 증가시켜야 하는지 확인
-     */
-    private boolean shouldIncrementMemberCount(CrewMemberStatus previousStatus, CrewMemberStatus newStatus) {
-        return previousStatus == CrewMemberStatus.WAITING && newStatus == CrewMemberStatus.ACCEPTED;
-    }
+	/**
+	 * ACCEPTED 상태이고 가입일이 null인지 확인
+	 */
+	private boolean isAcceptedAndJoinDateNull(CrewMemberStatus status, LocalDateTime joinedAt) {
+		return status == CrewMemberStatus.ACCEPTED && joinedAt == null;
+	}
 
-    /**
-     * 크루 멤버 수 증가
-     */
-    private void incrementCrewMemberCount(Long crewId) {
-        Crew crew = crewMapper.findById(crewId);
-        crew.setMemberCount(crew.getMemberCount() + 1);
-        crewMapper.update(crew);
-    }
-    @Override
-    @Transactional(readOnly = true)
-    public List<CrewMemberListResponse> getWaitingMemberList(Long crewId) {
-        validateCrewExists(crewId);
+	/**
+	 * 멤버 수를 증가시켜야 하는지 확인
+	 */
+	private boolean shouldIncrementMemberCount(CrewMemberStatus previousStatus, CrewMemberStatus newStatus) {
+		return previousStatus == CrewMemberStatus.WAITING && newStatus == CrewMemberStatus.ACCEPTED;
+	}
 
-        List<CrewMember> waitingMembers = crewMemberMapper.findWaitingMembersByCrewId(crewId);
-        if (waitingMembers.isEmpty()) {
-            return Collections.emptyList();
-        }
+	/**
+	 * 크루 멤버 수 증가
+	 */
+	private void incrementCrewMemberCount(Long crewId) {
+		Crew crew = crewMapper.findById(crewId);
+		crew.setMemberCount(crew.getMemberCount() + 1);
+		crewMapper.update(crew);
+	}
 
-        Map<Long, User> userMap = fetchUserMapForMembers(waitingMembers);
-        List<CrewMemberListResponse> responses = buildMemberListResponses(waitingMembers, userMap);
+	@Override
+	@Transactional(readOnly = true)
+	public List<CrewMemberListResponse> getWaitingMemberList(Long crewId) {
+		validateCrewExists(crewId);
 
-        // 신청일 순서대로 정렬 (먼저 신청한 순)
-        responses.sort(Comparator.comparing(CrewMemberListResponse::getJoinedAt,
-                Comparator.nullsLast(Comparator.naturalOrder())));
+		List<CrewMember> waitingMembers = crewMemberMapper.findWaitingMembersByCrewId(crewId);
+		if (waitingMembers.isEmpty()) {
+			return Collections.emptyList();
+		}
 
-        return responses;
-    }
+		Map<Long, User> userMap = fetchUserMapForMembers(waitingMembers);
+		List<CrewMemberListResponse> responses = buildMemberListResponses(waitingMembers, userMap);
 
+		// 신청일 순서대로 정렬 (먼저 신청한 순)
+		responses.sort(Comparator.comparing(CrewMemberListResponse::getJoinedAt,
+			Comparator.nullsLast(Comparator.naturalOrder())));
+
+		return responses;
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<CrewListResponse> getRecommendedCrews(Long userId) {
+		// 1. 사용자 정보 조회
+		User user = userMapper.findById(userId);
+		if (user == null) {
+			return Collections.emptyList();
+		}
+
+		// 2. 전체 크루 조회 (필터 없이)
+		List<CrewListResponse> allCrews = crewMapper.searchCrews(new CrewSearchRequest(
+			null, null, null, null, null, null, null, null, null));
+
+		// 3. 점수 계산 및 정렬
+		return allCrews.stream()
+			.map(crew -> {
+				int score = calculateMatchingScore(user, crew);
+				// MatchScore를 포함한 새로운 객체 생성
+				return new CrewListResponse(
+					crew.crewId(),
+					crew.name(),
+					crew.region(),
+					crew.memberCount(),
+					crew.activityTime(),
+					crew.averagePace(),
+					crew.ageGroup(),
+					crew.genderLimit(),
+					crew.crewImage(),
+					crew.keywords(),
+					score);
+			})
+			.sorted((c1, c2) -> c2.matchScore().compareTo(c1.matchScore())) // 점수 내림차순
+			.limit(5) // 상위 5개 추천
+			.collect(Collectors.toList());
+	}
+
+	private int calculateMatchingScore(User user, CrewListResponse crew) {
+		int score = 0;
+
+		// 1. 지역 일치 (50점) - 오프라인 활동 핵심
+		if (user.getActivityRegion() != null && crew.region() != null) {
+			String userRegion = user.getActivityRegion().name().replace("_", " ");
+			String crewRegion = crew.region().replace("_", " "); // DB 저장 방식에 따라 다를 수 있음
+			if (userRegion.equals(crewRegion) || crewRegion.contains(userRegion) || userRegion.contains(crewRegion)) {
+				score += 50;
+			}
+		}
+
+		// 2. 페이스 일치 (30점) - ±1.0 차이 이내
+		if (user.getAveragePace() != null && crew.averagePace() != 0) {
+			try {
+				double userPace = 0.0;
+				String[] parts = user.getAveragePace().split(":");
+				if (parts.length == 2) {
+					double minutes = Double.parseDouble(parts[0]);
+					double seconds = Double.parseDouble(parts[1]);
+					userPace = minutes + (seconds / 100.0);
+				} else {
+					userPace = Double.parseDouble(user.getAveragePace());
+				}
+
+				if (Math.abs(userPace - crew.averagePace()) <= 1.0) {
+					score += 30;
+				}
+			} catch (Exception e) {
+				// 페이스 파싱 실패 시 점수 없음
+			}
+		}
+
+		// 3. 연령대 일치 (20점)
+		if (user.getBirthDate() != null && crew.ageGroup() != null) {
+			int currentYear = LocalDate.now().getYear();
+			int birthYear = user.getBirthDate().getYear();
+			int age = currentYear - birthYear + 1; // 한국 나이 계산 방식 (단순 연도 차이 + 1)
+
+			String ageStr = String.valueOf(age / 10 * 10); // 25 -> "20"
+			if (crew.ageGroup().contains(ageStr)) {
+				score += 20;
+			}
+		}
+
+		return score;
+	}
 }

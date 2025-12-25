@@ -12,5 +12,7 @@ public record CrewListResponse(
 	String ageGroup,
 	String genderLimit,
 	String crewImage,
-	List<String> keywords
-) {}
+	List<String> keywords,
+	Integer matchScore // 매칭 점수
+) {
+}
