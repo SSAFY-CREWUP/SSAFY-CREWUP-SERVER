@@ -3,11 +3,9 @@ package com.ssafy.crewup.board.controller;
 import com.ssafy.crewup.board.dto.request.*;
 import com.ssafy.crewup.board.dto.response.*;
 import com.ssafy.crewup.board.service.BoardService;
-import com.ssafy.crewup.global.common.code.ErrorCode;
+import com.ssafy.crewup.global.annotation.LoginUser;
 import com.ssafy.crewup.global.common.code.SuccessCode;
 import com.ssafy.crewup.global.common.dto.ApiResponseBody;
-import com.ssafy.crewup.global.common.exception.CustomException;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,13 +23,6 @@ public class BoardController {
 
     private final BoardService boardService;
 
-    // 헬퍼 메서드 (생략 - 기존과 동일)
-    private Long getUserIdOrThrow(HttpSession session) {
-        Long userId = (Long) session.getAttribute("userId");
-        if (userId == null) throw new CustomException(ErrorCode.UNAUTHORIZED);
-        return userId;
-    }
-
     // ==================== [게시글 API] ====================
 
     // 1. 메인 홈 미리보기
@@ -39,9 +30,8 @@ public class BoardController {
     @GetMapping("/home")
     public ResponseEntity<ApiResponseBody<BoardHomeResponse>> getHomeBoards(
             @PathVariable Long crewId,
-            HttpSession session
+            @LoginUser Long userId
     ) {
-        getUserIdOrThrow(session);
         BoardHomeResponse response = boardService.getHomeBoards(crewId);
         return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.BOARD_READ_SUCCESS, response));
     }
@@ -52,10 +42,8 @@ public class BoardController {
     public ResponseEntity<ApiResponseBody<List<BoardListResponse>>> getBoardList(
             @PathVariable Long crewId,
             @ModelAttribute BoardSearchCondition condition,
-            HttpSession session
+            @LoginUser Long userId
     ) {
-        getUserIdOrThrow(session);
-
         condition.setCrewId(crewId);
 
         List<BoardListResponse> response = boardService.getBoardList(condition);
@@ -67,9 +55,8 @@ public class BoardController {
     public ResponseEntity<ApiResponseBody<BoardDetailResponse>> getBoardDetail(
             @PathVariable Long crewId,
             @PathVariable Long boardId,
-            HttpSession session
+            @LoginUser Long userId
     ) {
-        Long userId = getUserIdOrThrow(session);
         BoardDetailResponse response = boardService.getBoardDetail(crewId, boardId, userId);
         return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.BOARD_READ_SUCCESS, response));
     }
@@ -80,9 +67,8 @@ public class BoardController {
     public ResponseEntity<ApiResponseBody<Long>> createBoard(
             @PathVariable Long crewId,
             @Valid @RequestBody BoardCreateRequest request,
-            HttpSession session
+            @LoginUser Long userId
     ) {
-        Long userId = getUserIdOrThrow(session);
         Long boardId = boardService.createBoard(crewId, request, userId);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponseBody.onSuccess(SuccessCode.BOARD_CREATE_SUCCESS, boardId));
@@ -95,9 +81,8 @@ public class BoardController {
             @PathVariable Long crewId,
             @PathVariable Long boardId,
             @RequestBody BoardUpdateRequest request,
-            HttpSession session
+            @LoginUser Long userId
     ) {
-        Long userId = getUserIdOrThrow(session);
         boardService.updateBoard(boardId, request, userId);
         return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.BOARD_UPDATE_SUCCESS, null));
     }
@@ -108,9 +93,8 @@ public class BoardController {
     public ResponseEntity<ApiResponseBody<Void>> deleteBoard(
             @PathVariable Long crewId,
             @PathVariable Long boardId,
-            HttpSession session
+            @LoginUser Long userId
     ) {
-        Long userId = getUserIdOrThrow(session);
         boardService.deleteBoard(boardId, userId);
         return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.BOARD_DELETE_SUCCESS, null));
     }
@@ -125,9 +109,8 @@ public class BoardController {
             @PathVariable Long boardId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            HttpSession session
+            @LoginUser Long userId
     ) {
-        Long userId = getUserIdOrThrow(session);
         List<CommentResponse> response = boardService.getCommentList(boardId, page, size, userId);
         return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.COMMENT_READ_SUCCESS, response));
     }
@@ -139,9 +122,8 @@ public class BoardController {
             @PathVariable Long crewId,
             @PathVariable Long boardId,
             @Valid @RequestBody CommentCreateRequest request,
-            HttpSession session
+            @LoginUser Long userId
     ) {
-        Long userId = getUserIdOrThrow(session);
         boardService.createComment(boardId, request, userId);
         return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.COMMENT_CREATE_SUCCESS, null));
     }
@@ -153,9 +135,8 @@ public class BoardController {
             @PathVariable Long crewId,
             @PathVariable Long commentId,
             @RequestBody CommentCreateRequest request,
-            HttpSession session
+            @LoginUser Long userId
     ) {
-        Long userId = getUserIdOrThrow(session);
         boardService.updateComment(commentId, request, userId);
         return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.COMMENT_UPDATE_SUCCESS, null));
     }
@@ -166,9 +147,8 @@ public class BoardController {
     public ResponseEntity<ApiResponseBody<Void>> deleteComment(
             @PathVariable Long crewId,
             @PathVariable Long commentId,
-            HttpSession session
+            @LoginUser Long userId
     ) {
-        Long userId = getUserIdOrThrow(session);
         boardService.deleteComment(commentId, userId);
         return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.COMMENT_DELETE_SUCCESS, null));
     }
