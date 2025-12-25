@@ -46,6 +46,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "/api/v1/user/login",
                         "/api/v1/user/signup",
                         "/api/v1/user/check-email"
-                );
+                )
+                .excludePathPatterns("/**", "/OPTIONS"); // OPTIONS 요청 제외 추가
     }
 }
