@@ -132,14 +132,22 @@ public class CourseServiceImpl implements CourseService {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
 
-        // 2. 이미지 처리 (새 이미지 있으면 업로드, 없으면 기존 유지)
-        String imageUrl = course.getThumbnail();
-        if (image != null && !image.isEmpty()) {
-            imageUrl = uploadImage(image, "static/course"); // S3 업로드
+        String pathWkt = geometryUtil.convertToWkt(request.getPath());
+
+        String mainPointWkt = null;
+        if (request.getPath() != null && !request.getPath().isEmpty()) {
+            PointDto startPoint = request.getPath().get(0);
+            mainPointWkt = "POINT(" + startPoint.getLat() + " " + startPoint.getLng() + ")";
         }
 
-        // 3. 업데이트 실행
-        courseMapper.updateCourse(courseId, request, imageUrl);
+        // 2. 이미지 처리
+        String newImageUrl = null;
+        if (image != null && !image.isEmpty()) {
+            newImageUrl = s3Service.uploadFile(image, "courses");
+        }
+
+        // 4. 업데이트 실행 (파라미터 전달)
+        courseMapper.updateCourse(courseId, request, newImageUrl, pathWkt, mainPointWkt);
     }
 
     // [코스] 삭제
@@ -201,6 +209,7 @@ public class CourseServiceImpl implements CourseService {
                 .content(request.getContent())
                 .rating(request.getRating())
                 .image(imageUrl)
+                .difficultyScore(request.getDifficultyScore())
                 .build();
         courseReviewMapper.insertReview(review);
         eventPublisher.publishEvent(new ReviewCreatedEvent(courseId));

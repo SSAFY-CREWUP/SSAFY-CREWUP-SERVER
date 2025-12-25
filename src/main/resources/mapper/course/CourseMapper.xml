@@ -40,6 +40,9 @@
         <result property="aiSummary" column="ai_summary"/>
         <result property="createdAt" column="created_at"/>
         <result property="aiKeywords" column="ai_keywords"/>
+        <result property="avgDifficultyScore" column="avg_difficulty_score"/>
+        <result property="avgPaceSeconds" column="avg_pace_seconds"/>
+        <result property="myPaceSeconds" column="my_pace_seconds"/>
         <result property="isScrapped" column="isScrapped"/>
 
         <association property="writer" javaType="com.ssafy.crewup.course.dto.common.WriterDto">
@@ -58,6 +61,32 @@
 
             (SELECT COUNT(*) FROM course_scrap s
              WHERE s.course_id = c.course_id AND s.user_id = #{userId}) > 0 AS isScrapped,
+
+            (SELECT AVG(difficulty_score)
+             FROM course_review cr
+             WHERE cr.course_id = c.course_id
+            ) AS avg_difficulty_score,
+
+            (SELECT AVG(
+                            CAST(SUBSTRING_INDEX(u.average_pace, "'", 1) AS UNSIGNED) * 60 +
+                            CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(u.average_pace, '&quot;', 1), "'", -1) AS UNSIGNED)
+                    )
+             FROM users u
+             WHERE u.user_id IN (
+                 SELECT DISTINCT r.writer_id
+                 FROM course_review r
+                 WHERE r.course_id = c.course_id
+             )
+               AND u.average_pace LIKE "%'%"
+            ) AS avg_pace_seconds,
+
+            (SELECT
+                 CAST(SUBSTRING_INDEX(u.average_pace, "'", 1) AS UNSIGNED) * 60 +
+                 CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(u.average_pace, '&quot;', 1), "'", -1) AS UNSIGNED)
+             FROM users u
+             WHERE u.user_id = #{userId}  -- 로그인한 유저 ID
+               AND u.average_pace LIKE "%'%" -- 포맷 안전장치
+            ) AS my_pace_seconds,
 
             u.user_id, u.nickname, u.profile_image
         FROM course c
@@ -129,14 +158,24 @@
 
     <update id="updateCourse">
         UPDATE course
-        SET
-            title = #{req.title},
-            description = #{req.description},
-            distance = #{req.distance},
-            expected_time = #{req.expectedTime},
-            difficulty = #{req.difficulty},
-            thumbnail = #{imageUrl},
+        <set>
+            <if test="req.title != null">title = #{req.title},</if>
+            <if test="req.description != null">description = #{req.description},</if>
+            <if test="req.distance != null">distance = #{req.distance},</if>
+            <if test="req.expectedTime != null">expected_time = #{req.expectedTime},</if>
+            <if test="req.difficulty != null">difficulty = #{req.difficulty},</if>
+
+            <if test="imageUrl != null">thumbnail = #{imageUrl},</if>
+
+            <if test="pathWkt != null">
+                path = ST_GeomFromText(#{pathWkt}, 4326),
+            </if>
+            <if test="mainPointWkt != null">
+                main_point = ST_GeomFromText(#{mainPointWkt}, 4326),
+            </if>
+
             updated_at = NOW()
+        </set>
         WHERE course_id = #{courseId}
     </update>
 

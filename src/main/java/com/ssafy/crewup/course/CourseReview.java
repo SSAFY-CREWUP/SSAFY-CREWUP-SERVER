@@ -19,4 +19,5 @@ public class CourseReview extends BaseTime {
     private String content;  // TEXT
     private Integer rating;  // 1~5
     private String image;    // TEXT
+    private Integer difficultyScore; // 1~5
 }
