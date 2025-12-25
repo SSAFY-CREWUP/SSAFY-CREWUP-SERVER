@@ -53,7 +53,8 @@ public class CourseServiceImpl implements CourseService {
             PointDto startPoint = request.getPath().get(0);
             mainPointWkt = "POINT(" + startPoint.getLat() + " " + startPoint.getLng() + ")";
         }
-
+        String defaultKeywords = "{\"positive\": [], \"negative\": []}";
+        String defaultSummary = "러너들의 생생한 후기가 모이면 AI가 코스를 요약해 드려요!";
         Course course = Course.builder()
                 .writerId(writerId)
                 .title(request.getTitle())
@@ -65,11 +66,8 @@ public class CourseServiceImpl implements CourseService {
                 .difficulty(request.getDifficulty())
                 .thumbnail(imageUrl)
                 .scrapCount(0)
-                .aiKeywords("{\n" +
-                        "  \"positive\": [\"경치 좋음\", \"평지임\", \"편의점 많음\"],\n" +
-                        "  \"negative\": [\"사람 많음\", \"벌레 있음\"]\n" +
-                        "}")
-                .aiSummary("ai 임시 요약입니다.")
+                .aiKeywords(defaultKeywords)
+                .aiSummary(defaultSummary)
                 .build();
 
         courseMapper.insertCourse(course);
