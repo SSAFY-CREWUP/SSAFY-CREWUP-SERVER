@@ -47,29 +47,22 @@ public class CrewServiceImpl implements CrewService {
 		if (leaderUser == null)
 			throw new CustomException(ErrorCode.USER_NOT_FOUND);
 
-		Double initialPace = 0.0;
-		if (leaderUser.getAveragePace() != null && !leaderUser.getAveragePace().isEmpty()) {
-			try {
-				System.out.println("User Average Pace Raw: " + leaderUser.getAveragePace());
-				if (leaderUser.getAveragePace().contains(":")) {
-					String[] parts = leaderUser.getAveragePace().split(":");
-					if (parts.length == 2) {
-						double minutes = Double.parseDouble(parts[0]);
-						double seconds = Double.parseDouble(parts[1]);
-						// Store as MM.SS for simple visual handling (e.g. 5:30 -> 5.30)
-						initialPace = minutes + (seconds / 100.0);
-					}
-				} else {
-					initialPace = Double.parseDouble(leaderUser.getAveragePace());
-				}
-				System.out.println("Calculated Initial Pace: " + initialPace);
-			} catch (NumberFormatException e) {
-				System.out.println("Failed to parse pace: " + e.getMessage());
-				initialPace = 0.0;
-			}
-		} else {
-			System.out.println("User Average Pace is null or empty");
-		}
+        // [수정] 페이스 파싱 로직: 6'00"나 6:00 모두 대응 가능하도록 정규식 사용
+        Double initialPace = 0.0;
+        String rawPace = leaderUser.getAveragePace();
+        if (rawPace != null && !rawPace.isEmpty()) {
+            try {
+                // 콜론(:), 작은따옴표('), 큰따옴표("), 공백을 기준으로 분리
+                String[] parts = rawPace.split("[:'\" ]+");
+                if (parts.length >= 2) {
+                    initialPace = Double.parseDouble(parts[0]) + (Double.parseDouble(parts[1]) / 100.0);
+                } else if (parts.length == 1) {
+                    initialPace = Double.parseDouble(parts[0]);
+                }
+            } catch (NumberFormatException e) {
+                initialPace = 0.0; // 파싱 실패 시 기본값
+            }
+        }
 
 		// 2. Crew 엔티티 빌드 (imageUrl 파라미터를 직접 사용)
 		Crew crew = Crew.builder()
