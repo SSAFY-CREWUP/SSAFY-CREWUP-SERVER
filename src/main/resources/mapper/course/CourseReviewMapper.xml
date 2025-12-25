@@ -7,9 +7,9 @@
     <insert id="insertReview" parameterType="com.ssafy.crewup.course.CourseReview"
             useGeneratedKeys="true" keyProperty="id" keyColumn="review_id">
         INSERT INTO course_review (
-            course_id, writer_id, content, rating, image, created_at, updated_at
+            course_id, writer_id, content, rating, image, difficulty_score, created_at, updated_at
         ) VALUES (
-                     #{courseId}, #{writerId}, #{content}, #{rating}, #{image}, NOW(), NOW()
+                     #{courseId}, #{writerId}, #{content}, #{rating}, #{image}, #{difficultyScore}, NOW(), NOW()
                  )
     </insert>
 

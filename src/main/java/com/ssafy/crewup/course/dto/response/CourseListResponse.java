@@ -18,6 +18,7 @@ public class CourseListResponse {
     private Integer scrapCount;     // 스크랩 수
     private Double currentDistance;  // current_distance
 
+    private Boolean isScrapped; // 로그인한 유저 기준
     private Integer viewCount;
     private String mainPointWkt;
 }

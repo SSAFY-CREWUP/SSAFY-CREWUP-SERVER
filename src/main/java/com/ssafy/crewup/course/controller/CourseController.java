@@ -36,6 +36,7 @@ public class CourseController {
             @ModelAttribute CourseSearchCondition condition,
             @LoginUser Long userId
     ) {
+        condition.setUserId(userId);
         List<CourseListResponse> courses = courseService.getCourseList(condition);
         return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.COURSE_READ_SUCCESS, courses));
     }
