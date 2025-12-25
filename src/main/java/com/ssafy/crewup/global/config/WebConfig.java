@@ -25,7 +25,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOriginPatterns(allowedOrigins.split(","))  // allowedOrigins → allowedOriginPatterns
+                .allowedOriginPatterns(allowedOrigins.split(","))
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true)
@@ -46,7 +46,6 @@ public class WebConfig implements WebMvcConfigurer {
                         "/api/v1/user/login",
                         "/api/v1/user/signup",
                         "/api/v1/user/check-email"
-                )
-                .excludePathPatterns("/**", "/OPTIONS"); // OPTIONS 요청 제외 추가
+                );
     }
 }
