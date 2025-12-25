@@ -17,6 +17,7 @@ public class CourseReviewResponse {
     private String content;
     private Integer rating;
     private LocalDateTime createdAt;
+    private String image;
 
     private Boolean isMyReview;
 }

@@ -42,7 +42,9 @@ public interface CourseMapper {
     void updateCourse(
             @Param("courseId") Long courseId,
             @Param("req") CourseUpdateRequest request,
-            @Param("imageUrl") String imageUrl
+            @Param("imageUrl") String imageUrl,
+            @Param("pathWkt") String pathWkt,
+            @Param("mainPointWkt") String mainPointWkt
     );
 
     // 8. 코스 삭제

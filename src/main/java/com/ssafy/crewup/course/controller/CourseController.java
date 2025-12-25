@@ -8,11 +8,9 @@ import com.ssafy.crewup.course.dto.response.CourseGetResponse;
 import com.ssafy.crewup.course.dto.response.CourseListResponse;
 import com.ssafy.crewup.course.dto.response.CourseReviewResponse;
 import com.ssafy.crewup.course.service.CourseService;
-import com.ssafy.crewup.global.common.code.ErrorCode;
+import com.ssafy.crewup.global.annotation.LoginUser;
 import com.ssafy.crewup.global.common.code.SuccessCode;
 import com.ssafy.crewup.global.common.dto.ApiResponseBody;
-import com.ssafy.crewup.global.common.exception.CustomException;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -30,30 +28,15 @@ import java.util.List;
 public class CourseController {
     private final CourseService courseService;
 
-    // ==================== [Helper Method] ====================
-
-    /**
-     * 세션에서 userId를 추출합니다.
-     * 세션이 없거나 userId가 없으면 401 에러를 던집니다.
-     */
-    private Long getUserIdOrThrow(HttpSession session) {
-        Long userId = (Long) session.getAttribute("userId");
-        if (userId == null) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
-        }
-        return userId;
-    }
-
     // ==================== [API Endpoints] ====================
 
     // 1. 코스 목록 검색 (로그인 필수)
     @GetMapping
     public ResponseEntity<ApiResponseBody<List<CourseListResponse>>> getCourseList(
             @ModelAttribute CourseSearchCondition condition,
-            HttpSession session
+            @LoginUser Long userId
     ) {
-        getUserIdOrThrow(session); // 로그인 체크만 수행 (비회원 접근 차단)
-
+        condition.setUserId(userId);
         List<CourseListResponse> courses = courseService.getCourseList(condition);
         return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.COURSE_READ_SUCCESS, courses));
     }
@@ -62,9 +45,8 @@ public class CourseController {
     @GetMapping("/{courseId}")
     public ResponseEntity<ApiResponseBody<CourseGetResponse>> getCourseDetail(
             @PathVariable Long courseId,
-            HttpSession session) {
+            @LoginUser Long userId) {
 
-        Long userId = getUserIdOrThrow(session); // 이제 무조건 유저 ID가 있음
         CourseGetResponse result = courseService.getCourseDetail(courseId, userId);
         return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.COURSE_READ_SUCCESS, result));
     }
@@ -74,9 +56,7 @@ public class CourseController {
     public ResponseEntity<ApiResponseBody<Long>> createCourse(
             @RequestPart("data") CourseCreateRequest request,
             @RequestPart(value = "image", required = false) MultipartFile image,
-            HttpSession session) {
-
-        Long userId = getUserIdOrThrow(session);
+            @LoginUser Long userId) {
 
         Long courseId = courseService.createCourse(request, image, userId);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -89,9 +69,8 @@ public class CourseController {
             @PathVariable Long courseId,
             @RequestPart("data") CourseReviewRequest request,
             @RequestPart(value = "image", required = false) MultipartFile image,
-            HttpSession session) {
+            @LoginUser Long userId) {
         log.info("--- Controller 진입 ---");
-        Long userId = getUserIdOrThrow(session);
         log.info("--- User 검증 종료 ---");
         courseService.createReview(courseId, image, request, userId);
 
@@ -102,9 +81,8 @@ public class CourseController {
     @PostMapping("/{courseId}/scrap")
     public ResponseEntity<ApiResponseBody<Boolean>> toggleScrap(
             @PathVariable Long courseId,
-            HttpSession session) {
+            @LoginUser Long userId) {
 
-        Long userId = getUserIdOrThrow(session);
         boolean result = courseService.toggleScrap(courseId, userId);
 
         return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.COURSE_SCRAP_SUCCESS, result));
@@ -118,9 +96,8 @@ public class CourseController {
             @PathVariable Long courseId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            HttpSession session
+            @LoginUser Long userId
     ) {
-        Long userId = getUserIdOrThrow(session); // 내 리뷰인지(isWriter) 판단하기 위해 필요
         List<CourseReviewResponse> reviews = courseService.getReviewList(courseId, page, size, userId);
         return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.REVIEW_READ_SUCCESS, reviews));
     }
@@ -129,9 +106,8 @@ public class CourseController {
     @DeleteMapping("/reviews/{reviewId}")
     public ResponseEntity<ApiResponseBody<Void>> deleteReview(
             @PathVariable Long reviewId,
-            HttpSession session) {
+            @LoginUser Long userId) {
 
-        Long userId = getUserIdOrThrow(session);
         courseService.deleteReview(reviewId, userId);
         return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.REVIEW_DELETE_SUCCESS, null));
     }
@@ -143,9 +119,8 @@ public class CourseController {
     public ResponseEntity<ApiResponseBody<List<CourseListResponse>>> getMyScrapCourses(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            HttpSession session
+            @LoginUser Long userId
     ) {
-        Long userId = getUserIdOrThrow(session);
         List<CourseListResponse> scraps = courseService.getMyScrapCourses(userId, page, size);
         return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.COURSE_LIST_SUCCESS, scraps));
     }
@@ -157,9 +132,8 @@ public class CourseController {
     public ResponseEntity<ApiResponseBody<List<CourseListResponse>>> getMyCourses(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            HttpSession session
+            @LoginUser Long userId
     ) {
-        Long userId = getUserIdOrThrow(session);
         List<CourseListResponse> myCourses = courseService.getMyCourses(userId, page, size);
         return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.COURSE_READ_SUCCESS, myCourses));
     }
@@ -170,9 +144,8 @@ public class CourseController {
             @PathVariable Long courseId,
             @RequestPart(value = "data") CourseUpdateRequest request,
             @RequestPart(value = "image", required = false) MultipartFile image,
-            HttpSession session
+            @LoginUser Long userId
     ) {
-        Long userId = getUserIdOrThrow(session);
         courseService.updateCourse(courseId, request, image, userId);
         return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.COURSE_UPDATE_SUCCESS, null));
     }
@@ -181,9 +154,8 @@ public class CourseController {
     @DeleteMapping("/{courseId}")
     public ResponseEntity<ApiResponseBody<Void>> deleteCourse(
             @PathVariable Long courseId,
-            HttpSession session) {
+            @LoginUser Long userId) {
 
-        Long userId = getUserIdOrThrow(session);
         courseService.deleteCourse(courseId, userId);
         return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.COURSE_DELETE_SUCCESS, null));
     }
