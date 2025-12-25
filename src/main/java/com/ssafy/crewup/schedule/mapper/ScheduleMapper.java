@@ -47,7 +47,7 @@ public interface ScheduleMapper {
             "title, run_date AS runDate, location, max_people AS maxPeople, " +
             "content, schedule_type AS scheduleType, " +
             "created_at AS createdAt, updated_at AS updatedAt " +
-            "FROM schedules " +
+            "FROM schedule " +
             "WHERE run_date BETWEEN #{startRange} AND #{endRange}")
     List<Schedule> findByRunDateBetween(
             @Param("startRange") LocalDateTime startRange,
