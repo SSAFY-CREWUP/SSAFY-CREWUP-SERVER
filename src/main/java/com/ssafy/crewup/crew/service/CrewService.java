@@ -20,8 +20,12 @@ public interface CrewService {
 	List<CrewListResponse> searchCrews(CrewSearchRequest request);
 
 	List<CrewListResponse> getMyCrews(Long userId);
-  
-  List<CrewMemberListResponse> getCrewMemberList(Long crewId);
 
-    void updateMemberStatus(Long crewId, Long memberId, CrewMemberStatus status, Long requestUserId);
+	List<CrewMemberListResponse> getCrewMemberList(Long crewId);
+
+	void updateMemberStatus(Long crewId, Long memberId, CrewMemberStatus status, Long requestUserId);
+
+	List<CrewMemberListResponse> getWaitingMemberList(Long crewId);
+
+	List<CrewListResponse> getRecommendedCrews(Long userId);
 }

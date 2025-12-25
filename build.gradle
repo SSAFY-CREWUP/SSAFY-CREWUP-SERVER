@@ -8,14 +8,14 @@ group = 'com.ssafy'
 version = '0.0.1-SNAPSHOT'
 description = 'Demo project for Spring Boot'
 
-java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
-	}
-}
-
+//java {
+//	toolchain {
+//		languageVersion = JavaLanguageVersion.of(17)
+//	}
+//}
 repositories {
 	mavenCentral()
+    maven { url 'https://repo.spring.io/milestone' } // 이거 필수
 }
 
 dependencies {
@@ -46,6 +46,9 @@ dependencies {
 
     //S3
     implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+
+    //ai
+    implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter:1.0.0-M1'
 }
 
 tasks.named('test') {

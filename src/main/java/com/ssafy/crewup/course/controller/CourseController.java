@@ -34,7 +34,7 @@ public class CourseController {
 
     /**
      * 세션에서 userId를 추출합니다.
-     * 세션이 없거나 userId가 없으면 무조건 401 에러를 던집니다. (전체 서비스 필수)
+     * 세션이 없거나 userId가 없으면 401 에러를 던집니다.
      */
     private Long getUserIdOrThrow(HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
@@ -88,14 +88,15 @@ public class CourseController {
     }
 
     // 4. 리뷰 등록 (로그인 필수)
-    @PostMapping("/{courseId}/reviews")
+    @PostMapping(value = "/{courseId}/reviews", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponseBody<Void>> createReview(
             @PathVariable Long courseId,
-            @RequestBody CourseReviewRequest request,
+            @RequestPart("data") CourseReviewRequest request,
             @RequestPart(value = "image", required = false) MultipartFile image,
             HttpSession session) {
-
+        log.info("--- Controller 진입 ---");
         Long userId = getUserIdOrThrow(session);
+        log.info("--- User 검증 종료 ---");
         courseService.createReview(courseId, image, request, userId);
 
         return ResponseEntity.ok(ApiResponseBody.onSuccess(SuccessCode.REVIEW_CREATE_SUCCESS, null));

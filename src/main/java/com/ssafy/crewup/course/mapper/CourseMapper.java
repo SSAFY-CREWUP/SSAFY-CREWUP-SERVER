@@ -47,4 +47,9 @@ public interface CourseMapper {
 
     // 8. 코스 삭제
     void deleteCourse(@Param("courseId") Long courseId);
+
+    // 9. Ai 요약 & Ai 키워드 업데이트
+    void updateAiAnalysis(@Param("courseId") Long courseId,
+                          @Param("summary") String summary,
+                          @Param("keywords") String keywords);
 }
