@@ -16,36 +16,36 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 
-    @Value("${app.cors.allowed-origins}")
-    private String allowedOrigins;
+	@Value("${app.cors.allowed-origins}")
+	private String allowedOrigins;
 
-    private final LoginUserArgumentResolver loginUserArgumentResolver;
-    private final AuthInterceptor authInterceptor;
+	private final LoginUserArgumentResolver loginUserArgumentResolver;
+	private final AuthInterceptor authInterceptor;
 
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOriginPatterns(allowedOrigins.split(","))
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true)
-                .exposedHeaders("*")
-                .maxAge(3600);
-    }
+	@Override
+	public void addCorsMappings(CorsRegistry registry) {
+		registry.addMapping("/**")
+			.allowedOriginPatterns(allowedOrigins.split(","))
+			.allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+			.allowedHeaders("*")
+			.allowCredentials(true)
+			.exposedHeaders("*")
+			.maxAge(3600);
+	}
 
-    @Override
-    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-        resolvers.add(loginUserArgumentResolver);
-    }
+	@Override
+	public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+		resolvers.add(loginUserArgumentResolver);
+	}
 
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(authInterceptor)
-                .addPathPatterns("/api/**")
-                .excludePathPatterns(
-                        "/api/v1/user/login",
-                        "/api/v1/user/signup",
-                        "/api/v1/user/check-email"
-                );
-    }
+	@Override
+	public void addInterceptors(InterceptorRegistry registry) {
+		registry.addInterceptor(authInterceptor)
+			.addPathPatterns("/api/**")
+			.excludePathPatterns(
+				"/api/v1/user/login",
+				"/api/v1/user/signup",
+				"/api/v1/user/check-email")
+			.excludePathPatterns("/error");
+	}
 }

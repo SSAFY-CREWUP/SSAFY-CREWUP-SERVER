@@ -40,13 +40,13 @@ public class VoteServiceImpl implements VoteService {
 	private final VoteOptionMapper voteOptionMapper;
 	private final VoteRecordMapper voteRecordMapper;
 	private final CrewMemberMapper crewMemberMapper;
-    private final CrewMapper crewMapper;
-    private final ApplicationEventPublisher eventPublisher;
+	private final CrewMapper crewMapper;
+	private final ApplicationEventPublisher eventPublisher;
 
 	@Override
 	@Transactional
 	public void createVote(Long userId, Long crewId, VoteCreateRequest request) {
-		// 1. 매니저 권한 검증
+		// 1. 크루 멤버인지 검증 (모든 멤버 생성 가능하도록 권한 체크 완화)
 		validateManagerAuthority(userId, crewId);
 
 		// 2. 투표 본체 생성
@@ -69,7 +69,7 @@ public class VoteServiceImpl implements VoteService {
 				.count(0)
 				.build());
 		}
-        sendVoteCreatedNotification(vote, userId);
+		sendVoteCreatedNotification(vote, userId);
 	}
 
 	@Override
@@ -84,7 +84,12 @@ public class VoteServiceImpl implements VoteService {
 			throw new CustomException(ErrorCode.BAD_REQUEST); // 마감된 투표
 		}
 
-		// 중복 선택 여부 확인
+		// 중복 투표 방지 (이미 투표한 이력이 있으면 차단)
+		if (voteRecordMapper.existsByUserIdAndVoteId(userId, voteId)) {
+			throw new CustomException(ErrorCode.ALREADY_VOTED);
+		}
+
+		// 중복 선택 여부 확인 (한 투표 내에서 옵션 여러개 선택)
 		if (!vote.getMultipleChoice() && optionIds.size() > 1) {
 			throw new CustomException(ErrorCode.BAD_REQUEST);
 		}
@@ -210,7 +215,7 @@ public class VoteServiceImpl implements VoteService {
 			throw new CustomException(ErrorCode.FORBIDDEN);
 		}
 		voteMapper.delete(voteId);
-        sendVoteClosedNotification(vote);
+		sendVoteClosedNotification(vote);
 	}
 
 	/**
@@ -225,71 +230,70 @@ public class VoteServiceImpl implements VoteService {
 			.orElseThrow(() -> new com.ssafy.crewup.global.common.exception.CustomException(
 				com.ssafy.crewup.global.common.code.ErrorCode.UNAUTHORIZED));
 
-		if (currentMember.getRole() == com.ssafy.crewup.enums.CrewMemberRole.MEMBER) {
-			throw new com.ssafy.crewup.global.common.exception.CustomException(
-				com.ssafy.crewup.global.common.code.ErrorCode.FORBIDDEN);
+		// if (currentMember.getRole() == com.ssafy.crewup.enums.CrewMemberRole.MEMBER)
+		// {
+		// throw new com.ssafy.crewup.global.common.exception.CustomException(
+		// com.ssafy.crewup.global.common.code.ErrorCode.FORBIDDEN);
+		// }
+	}
+
+	// ==================== 알림 발송 메서드 ====================
+
+	/**
+	 * 투표 생성 알림 발송
+	 */
+	private void sendVoteCreatedNotification(Vote vote, Long excludeUserId) {
+		try {
+			Crew crew = crewMapper.findById(vote.getCrewId());
+			if (crew == null) {
+				return;
+			}
+
+			String content = String.format("새로운 투표 '%s'이(가) 등록되었습니다.", vote.getTitle());
+			String url = String.format("/vote/%d", vote.getId());
+
+			NotificationEvent event = NotificationEvent.builder()
+				.crewId(vote.getCrewId())
+				.crewName(crew.getName())
+				.excludeUserId(excludeUserId)
+				.type(NotificationType.VOTE)
+				.content(content)
+				.url(url)
+				.build();
+
+			eventPublisher.publishEvent(event);
+
+		} catch (Exception e) {
+			// 알림 발송 실패 시 조용히 무시
 		}
 	}
-  
-      // ==================== 알림 발송 메서드 ====================
 
-    /**
-     * 투표 생성 알림 발송
-     */
-    private void sendVoteCreatedNotification(Vote vote, Long excludeUserId) {
-        try {
-            Crew crew = crewMapper.findById(vote.getCrewId());
-            if (crew == null) {
-                return;
-            }
+	/**
+	 * 투표 마감 알림 발송
+	 */
+	private void sendVoteClosedNotification(Vote vote) {
+		try {
+			Crew crew = crewMapper.findById(vote.getCrewId());
+			if (crew == null) {
+				return;
+			}
 
-            String content = String.format("새로운 투표 '%s'이(가) 등록되었습니다.", vote.getTitle());
-            String url = String.format("/vote/%d", vote.getId());
+			String content = String.format("투표 '%s'이(가) 마감되었습니다.", vote.getTitle());
+			String url = String.format("/vote/%d", vote.getId());
 
-            NotificationEvent event = NotificationEvent.builder()
-                    .crewId(vote.getCrewId())
-                    .crewName(crew.getName())
-                    .excludeUserId(excludeUserId)
-                    .type(NotificationType.VOTE)
-                    .content(content)
-                    .url(url)
-                    .build();
+			NotificationEvent event = NotificationEvent.builder()
+				.crewId(vote.getCrewId())
+				.crewName(crew.getName())
+				.excludeUserId(null)
+				.type(NotificationType.VOTE)
+				.content(content)
+				.url(url)
+				.build();
 
-            eventPublisher.publishEvent(event);
+			eventPublisher.publishEvent(event);
 
-        } catch (Exception e) {
-            // 알림 발송 실패 시 조용히 무시
-        }
-    }
-
-    /**
-     * 투표 마감 알림 발송
-     */
-    private void sendVoteClosedNotification(Vote vote) {
-        try {
-            Crew crew = crewMapper.findById(vote.getCrewId());
-            if (crew == null) {
-                return;
-            }
-
-            String content = String.format("투표 '%s'이(가) 마감되었습니다.", vote.getTitle());
-            String url = String.format("/vote/%d", vote.getId());
-
-            NotificationEvent event = NotificationEvent.builder()
-                    .crewId(vote.getCrewId())
-                    .crewName(crew.getName())
-                    .excludeUserId(null)
-                    .type(NotificationType.VOTE)
-                    .content(content)
-                    .url(url)
-                    .build();
-
-            eventPublisher.publishEvent(event);
-
-        } catch (Exception e) {
-            // 알림 발송 실패 시 조용히 무시
-        }
-    }
-
-
+		} catch (Exception e) {
+			// 알림 발송 실패 시 조용히 무시
+		}
+	}
 }
